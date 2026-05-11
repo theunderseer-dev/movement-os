@@ -1,34 +1,49 @@
-# Gradle files
+# Android Studio / IntelliJ
+.idea/
+*.iml
 .gradle/
-build/
-
-# Local configuration file (sdk path, etc)
 local.properties
-
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
+.DS_Store
 captures/
 .externalNativeBuild/
 .cxx/
-*.aab
+
+# Build outputs
+build/
+out/
 *.apk
-output-metadata.json
+*.aab
+*.ap_
+*.dex
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+# Generated files
+bin/
+gen/
+.kotlin/
 
-# Keystore files
+# Keystore (NEVER commit this)
 *.jks
 *.keystore
+keystore.properties
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+# Logs
+*.log
 
-# Android Profiling
-*.hprof
+# Local config
+local.properties
+*.env
+.env.local
+secrets.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# KMM / iOS
+xcuserdata/
+*.xcworkspace/
+Pods/
+
+# Backend (if you add Ktor backend later)
+backend/build/
+backend/.gradle/
