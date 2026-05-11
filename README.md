@@ -37,21 +37,26 @@ Most movement apps give you static programs. Real coaches adapt. This project ex
 
 ## Architecture
 
-┌─────────────────────────────────────────┐
-│  Android App  (Compose · MVI · Hilt)    │
-├─────────────────────────────────────────┤
-│  iOS App      (SwiftUI · KMM consumer)  │
-├─────────────────────────────────────────┤
-│  Shared KMM Module                      │
-│  ├── domain (use cases, models)         │
-│  ├── data   (repositories, sources)     │
-│  ├── network (Ktor client, LLM proxy)   │
-│  └── database (SQLDelight)              │
-├─────────────────────────────────────────┤
-│  Optional Backend (Ktor server)         │
-│  ├── LLM proxy (rate limit, cache)      │
-│  └── Sync endpoint (offline-first)      │
-└─────────────────────────────────────────┘
+```mermaid
+graph TB
+A[Android App<br/>Compose · MVI · Hilt] --> S
+I[iOS App<br/>SwiftUI · KMM consumer] --> S
+
+    S[Shared KMM Module]
+    S --> D[domain<br/>use cases, models]
+    S --> DA[data<br/>repositories, sources]
+    S --> N[network<br/>Ktor client, LLM proxy]
+    S --> DB[database<br/>SQLDelight]
+    
+    N -.optional.-> B[Backend<br/>Ktor server]
+    B --> P[LLM proxy<br/>rate limit, cache]
+    B --> SY[Sync endpoint<br/>offline-first]
+    
+    style A fill:#e1f5ee,stroke:#0f6e56
+    style I fill:#e6f1fb,stroke:#185fa5
+    style S fill:#faeeda,stroke:#854f0b
+    style B fill:#f1efe8,stroke:#5f5e5a
+```
 
 ## Key engineering decisions
 
@@ -98,6 +103,7 @@ cd movement-os
 
 ## Project structure
 
+```
 movement-os/
 ├── androidApp/          # Android-specific (Compose UI, Hilt setup)
 ├── iosApp/              # iOS-specific (SwiftUI consumer)
@@ -109,6 +115,7 @@ movement-os/
 ├── backend/             # Optional Ktor server (LLM proxy + sync)
 ├── docs/                # Architecture decision records (ADRs)
 └── .github/workflows/   # CI/CD
+```
 
 ## License
 
