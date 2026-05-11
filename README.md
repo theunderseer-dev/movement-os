@@ -69,7 +69,7 @@ Detailed reasoning in [`/docs/architecture`](./docs/architecture).
 
 ## Status & roadmap
 
-This is built in public over 4 weeks. Follow progress in the [project board](https://github.com/[username]/movement-os/projects/1).
+This is built in public over 4 weeks. Follow progress in the [project board](https://github.com/users/theunderseer-dev/projects/1).
 
 - [x] Project structure, multi-module, CI
 - [ ] Domain & data layer (KMM)
