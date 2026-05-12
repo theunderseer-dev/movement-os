@@ -10,6 +10,7 @@ captures/
 
 # Build outputs
 build/
+**/build/
 out/
 *.apk
 *.aab

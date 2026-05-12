@@ -2,6 +2,7 @@ rootProject.name = "MovementOS"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             mavenContent {
@@ -30,3 +31,8 @@ dependencyResolutionManagement {
 
 include(":androidApp")
 include(":shared")
+include(":core:designsystem")
+include(":core:ui")
+include(":core:common")
+include(":core:testing")
+include(":feature:onboarding")
