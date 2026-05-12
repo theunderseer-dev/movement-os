@@ -65,6 +65,14 @@ android {
 }
 
 dependencies {
+    implementation(projects.shared)
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose.ui)
     debugImplementation(libs.compose.uiTooling)
 }
 
