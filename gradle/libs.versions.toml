@@ -11,6 +11,7 @@ androidx-lifecycle = "2.10.0"
 androidx-testExt = "1.3.0"
 androidx-test-espresso = "3.6.1"
 composeMultiplatform = "1.10.3"
+composeBom = "2024.10.01"
 junit = "4.13.2"
 mockk = "1.13.13"
 turbine = "1.2.0"
@@ -28,8 +29,11 @@ sqldelight = "2.0.2"
 room = "2.6.1"
 detekt = "1.23.7"
 ktlint-gradle = "12.1.1"
+material = "1.10.0"
 
 [libraries]
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -50,7 +54,7 @@ compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.re
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeMultiplatform" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeMultiplatform" }
@@ -76,6 +80,8 @@ sqldelight-coroutines-ext = { module = "app.cash.sqldelight:coroutines-extension
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
 
 [bundles]
 compose-ui = ["compose-ui", "compose-uiToolingPreview", "compose-material3"]
@@ -83,6 +89,9 @@ compose-test = ["compose-ui-test-junit4", "compose-ui-test-manifest"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
 
 [plugins]
+movementos-android-library = { id = "movementos.android.library", version = "unspecified" }
+movementos-android-feature = { id = "movementos.android.feature", version = "unspecified" }
+movementos-android-application = { id = "movementos.android.application", version = "unspecified" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
