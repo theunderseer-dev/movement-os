@@ -1,4 +1,4 @@
-package com.example.movementos
+package com.theunderseer.movementos
 
 import android.os.Build
 

@@ -1,4 +1,4 @@
-package com.example.movementos
+package com.theunderseer.movementos
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
