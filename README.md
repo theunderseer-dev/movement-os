@@ -4,7 +4,7 @@
 
 **Status:** 🚧 In development — building in public
 
-[![CI](https://github.com/theunderseer-dev/movement-os/actions/workflows/ci.yml/badge.svg)](https://github.com/theunderseer-dev/movement-os/actions)
+[![CI](https://github.com/theunderseer-dev/movement-os/actions/workflows/ci.yml/badge.svg)](https://github.com/theunderseer-dev/movement-os/actions/workflows/ci.yml)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -94,6 +94,16 @@ git clone https://github.com/theunderseer-dev/movement-os.git
 cd movement-os
 ./gradlew :androidApp:assembleDebug
 ```
+
+## Development setup
+
+After clone:
+```bash
+./scripts/install-git-hooks.sh
+```
+
+This installs a pre-commit hook running ktlint + Detekt locally.
+
 
 ### Run tests
 

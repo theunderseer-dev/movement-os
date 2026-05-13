@@ -1,0 +1,45 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+complexity:
+  active: true
+  LongMethod:
+    threshold: 60
+  LongParameterList:
+    functionThreshold: 6
+    constructorThreshold: 7
+  TooManyFunctions:
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+
+style:
+  active: true
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2', '100']
+    ignoreEnums: true
+  MaxLineLength:
+    maxLineLength: 140
+  WildcardImport:
+    active: true
+  ForbiddenComment:
+    comments:
+      - reason: 'Forbidden TODO'
+        value: 'TODO:'
+      - reason: 'Forbidden FIXME'
+        value: 'FIXME:'
+      - reason: 'Forbidden STOPSHIP'
+        value: 'STOPSHIP'
+
+formatting:
+  active: true
+  android: true
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    excludeClassPattern: '$^'
+    ignoreAnnotated:
+      - 'Composable'

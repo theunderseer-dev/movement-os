@@ -3,7 +3,7 @@ package com.theunderseer.movementos
 import platform.UIKit.UIDevice
 import kotlin.native.Platform
 
-class IOSPlatform: Platform {
+class IOSPlatform : Platform {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
 
