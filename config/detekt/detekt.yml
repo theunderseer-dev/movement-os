@@ -19,6 +19,13 @@ style:
     active: true
     ignoreNumbers: ['-1', '0', '1', '2', '100']
     ignoreEnums: true
+    ignoreAnnotated:
+      - 'Composable'
+    excludes:
+      - '**/theme/Color.kt'
+      - '**/theme/Typography.kt'
+      - '**/theme/Spacing.kt'
+      - '**/theme/Shape.kt'
   MaxLineLength:
     maxLineLength: 140
   WildcardImport:
@@ -31,10 +38,16 @@ style:
         value: 'FIXME:'
       - reason: 'Forbidden STOPSHIP'
         value: 'STOPSHIP'
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - 'Composable'
 
 formatting:
-  active: true
-  android: true
+    active: true
+    android: true
+    Indentation:
+        active: false
 
 naming:
   FunctionNaming:
