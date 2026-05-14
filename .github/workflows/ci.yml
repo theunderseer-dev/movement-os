@@ -57,6 +57,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Cache Konan
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.konan/caches
+            ~/.konan/dependencies
+            ~/.konan/kotlin-native-prebuilt-*
+          key: ${{ runner.os }}-konan-${{ hashFiles('**/*.gradle.kts', '**/gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
