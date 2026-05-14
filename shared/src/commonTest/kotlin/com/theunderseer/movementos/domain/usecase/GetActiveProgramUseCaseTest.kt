@@ -5,11 +5,13 @@ import com.theunderseer.movementos.domain.fake.FakeProgramRepository
 import com.theunderseer.movementos.domain.model.Program
 import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(ExperimentalTime::class)
 class GetActiveProgramUseCaseTest {
     private val repository = FakeProgramRepository()
     private val useCase = GetActiveProgramUseCase(repository)
