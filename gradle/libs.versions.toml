@@ -82,7 +82,6 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
-
 [bundles]
 compose-ui = ["compose-ui", "compose-uiToolingPreview", "compose-material3"]
 compose-test = ["compose-ui-test-junit4", "compose-ui-test-manifest"]
