@@ -19,6 +19,7 @@ allprojects {
 
     detekt {
         config.setFrom(files("${rootProject.projectDir}/config/detekt/detekt.yml"))
+        source.from(files("src/main/kotlin", "src/commonMain/kotlin", "src/androidMain/kotlin"))
         buildUponDefaultConfig = true
         autoCorrect = true
         parallel = true
