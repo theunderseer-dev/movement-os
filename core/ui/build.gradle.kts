@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.movementos.android.library)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.movementos.quality)
 }
 
 android {

@@ -29,6 +29,7 @@ sqldelight = "2.0.2"
 room = "2.6.1"
 detekt = "1.23.7"
 ktlint-gradle = "12.1.1"
+ktlint = "1.4.1"
 material = "1.10.0"
 
 [libraries]
@@ -83,6 +84,10 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
+
 
 [bundles]
 compose-ui = ["compose-ui", "compose-uiToolingPreview", "compose-material3"]
@@ -93,6 +98,7 @@ ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-seri
 movementos-android-library = { id = "movementos.android.library", version = "unspecified" }
 movementos-android-feature = { id = "movementos.android.feature", version = "unspecified" }
 movementos-android-application = { id = "movementos.android.application", version = "unspecified" }
+movementos-quality = { id = "movementos.quality", version = "unspecified" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
