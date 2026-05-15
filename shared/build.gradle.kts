@@ -59,7 +59,7 @@ kotlin {
             implementation(libs.turbine)
         }
         androidUnitTest.dependencies {
-            implementation(libs.sqldelight.test.driver)
+            implementation(libs.sqldelight.jvm.driver)
         }
     }
 }
