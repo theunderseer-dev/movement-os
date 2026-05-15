@@ -9,6 +9,7 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
 
 class QualityConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
@@ -33,6 +34,13 @@ class QualityConventionPlugin : Plugin<Project> {
             filter {
                 exclude("**/generated/**")
                 exclude("**/build/**")
+            }
+        }
+
+        tasks.withType<BaseKtLintCheckTask>().configureEach {
+            exclude { fileTreeElement ->
+                fileTreeElement.file.path.contains("/build/") ||
+                    fileTreeElement.file.path.contains("/generated/")
             }
         }
 
