@@ -1,0 +1,13 @@
+CREATE TABLE SyncMetadata (
+    table_name TEXT NOT NULL PRIMARY KEY,
+    last_synced_at_ms INTEGER NOT NULL,
+    last_sync_attempt_ms INTEGER,
+    last_sync_error TEXT
+);
+
+selectByTable:
+SELECT * FROM SyncMetadata WHERE table_name = ?;
+
+upsert:
+INSERT OR REPLACE INTO SyncMetadata(table_name, last_synced_at_ms, last_sync_attempt_ms, last_sync_error)
+VALUES (?, ?, ?, ?);

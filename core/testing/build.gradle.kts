@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.movementos.android.library)
+    alias(libs.plugins.movementos.quality)
 }
 
 android {

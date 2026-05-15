@@ -1,0 +1,47 @@
+CREATE TABLE Programs (
+    id TEXT NOT NULL PRIMARY KEY,
+    goal_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    primary_type TEXT NOT NULL,
+    generated_at_ms INTEGER NOT NULL,
+    is_active INTEGER NOT NULL,
+    updated_at_ms INTEGER NOT NULL,
+    is_dirty INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (goal_id) REFERENCES Goals(id) ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM Programs;
+
+selectById:
+SELECT * FROM Programs WHERE id = ?;
+
+selectActive:
+SELECT * FROM Programs WHERE is_active = 1 LIMIT 1;
+
+observeActive:
+SELECT * FROM Programs WHERE is_active = 1 LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO Programs(
+    id, goal_id, name, description, primary_type,
+    generated_at_ms, is_active, updated_at_ms, is_dirty
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deactivateAll:
+UPDATE Programs SET is_active = 0, updated_at_ms = :now, is_dirty = 1
+WHERE is_active = 1;
+
+deactivateById:
+UPDATE Programs SET is_active = 0, updated_at_ms = :now, is_dirty = 1
+WHERE id = ?;
+
+deleteById:
+DELETE FROM Programs WHERE id = ?;
+
+selectDirty:
+SELECT * FROM Programs WHERE is_dirty = 1;
+
+markClean:
+UPDATE Programs SET is_dirty = 0 WHERE id = ?;

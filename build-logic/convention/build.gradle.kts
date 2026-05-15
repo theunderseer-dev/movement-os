@@ -12,6 +12,8 @@ java {
 dependencies {
     compileOnly(libs.android.gradle.plugin)
     compileOnly(libs.kotlin.gradle.plugin)
+    compileOnly(libs.detekt.gradle.plugin)
+    compileOnly(libs.ktlint.gradle.plugin)
 }
 
 gradlePlugin {
@@ -27,6 +29,10 @@ gradlePlugin {
         register("androidApplication") {
             id = "movementos.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
+        }
+        register("quality") {
+            id = "movementos.quality"
+            implementationClass = "QualityConventionPlugin"
         }
     }
 }

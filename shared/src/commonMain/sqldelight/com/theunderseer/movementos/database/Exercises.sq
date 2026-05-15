@@ -1,0 +1,20 @@
+CREATE TABLE Exercises (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    order_index INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    duration_seconds INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    cues TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY (session_id) REFERENCES Sessions(id) ON DELETE CASCADE
+);
+
+selectBySessionId:
+SELECT * FROM Exercises WHERE session_id = ? ORDER BY order_index ASC;
+
+upsert:
+INSERT OR REPLACE INTO Exercises(id, session_id, order_index, name, duration_seconds, type, cues)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteBySessionId:
+DELETE FROM Exercises WHERE session_id = ?;
