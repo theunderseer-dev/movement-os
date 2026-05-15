@@ -18,6 +18,12 @@ sqldelight {
     }
 }
 
+ktlint {
+    filter {
+        exclude("**/build/generated/**")
+    }
+}
+
 kotlin {
     androidTarget {
         compilerOptions {
