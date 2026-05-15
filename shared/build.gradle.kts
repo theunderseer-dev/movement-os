@@ -4,6 +4,17 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("MovementOSDatabase") {
+            packageName.set("com.theunderseer.movementos.database")
+            verifyMigrations.set(true) // CI catches breaking migrations
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+        }
+    }
 }
 
 kotlin {
@@ -12,6 +23,10 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
+
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
 
 //    listOf(
 //        iosArm64(),
@@ -27,14 +42,24 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines.ext)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
+            implementation(libs.sqldelight.android.driver)
+        }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native.driver)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.sqldelight.test.driver)
         }
     }
 }
