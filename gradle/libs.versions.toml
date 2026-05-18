@@ -31,6 +31,7 @@ detekt = "1.23.7"
 ktlint-gradle = "12.1.1"
 ktlint = "1.4.1"
 material = "1.10.0"
+kermit = "2.0.4"
 
 [libraries]
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -87,7 +88,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
-
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 [bundles]
 compose-ui = ["compose-ui", "compose-uiToolingPreview", "compose-material3"]
