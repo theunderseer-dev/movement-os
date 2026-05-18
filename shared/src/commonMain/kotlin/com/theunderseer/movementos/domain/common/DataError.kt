@@ -8,8 +8,14 @@ package com.theunderseer.movementos.domain.common
  */
 sealed class DataError {
     data object Network : DataError()
+
     data object Unauthorized : DataError()
+
     data object NotFound : DataError()
+
     data object Local : DataError()
-    data class Unknown(val message: String?) : DataError()
+
+    data class Unknown(
+        val message: String?,
+    ) : DataError()
 }
