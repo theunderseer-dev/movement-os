@@ -1,5 +1,6 @@
 package com.theunderseer.movementos.domain.repository
 
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.Program
 import kotlinx.coroutines.flow.Flow
 
@@ -17,7 +18,7 @@ interface ProgramRepository {
      *
      * Emits null when no program is generated yet.
      */
-    fun observeActiveProgram(): Flow<Program?>
+    fun observeActiveProgram(forceRefresh: Boolean = false): Flow<DataState<Program?>>
 
     /**
      * One-time fetch of a program by id.

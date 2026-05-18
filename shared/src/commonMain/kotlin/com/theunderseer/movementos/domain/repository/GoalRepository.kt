@@ -1,5 +1,6 @@
 package com.theunderseer.movementos.domain.repository
 
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.UserGoal
 import kotlinx.coroutines.flow.Flow
 
@@ -7,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
  * Manages user goals — what the user wants to achieve.
  */
 interface GoalRepository {
-    fun observeCurrentGoal(): Flow<UserGoal?>
+    fun observeCurrentGoal(forceRefresh: Boolean = false): Flow<DataState<UserGoal?>>
 
     suspend fun getById(id: String): UserGoal?
 
