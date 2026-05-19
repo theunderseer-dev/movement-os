@@ -16,6 +16,16 @@ import kotlinx.coroutines.withContext
 
 private const val SYNC_TABLE = "Goals"
 
+/**
+ * Reactive repository: DB is source of truth, network refreshes on staleness.
+ *
+ * UI subscribes to [observeCurrentGoal] and receives:
+ * - Loading (with cached data, if any) immediately
+ * - Success once DB emits
+ * - Error with cached fallback if network refresh fails
+ *
+ * Errors are logged but never thrown to subscribers (graceful degradation).
+ */
 internal class DefaultGoalRepository(
     private val local: GoalLocalDataSource,
     private val remote: GoalRemoteDataSource,

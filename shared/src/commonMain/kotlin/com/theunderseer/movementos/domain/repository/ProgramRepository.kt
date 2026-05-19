@@ -18,7 +18,7 @@ interface ProgramRepository {
      *
      * Emits null when no program is generated yet.
      */
-    fun observeActiveProgram(forceRefresh: Boolean = false): Flow<DataState<Program?>>
+    fun observeActiveProgram(forceRefresh: Boolean = false): Flow<DataState<Program>>
 
     /**
      * One-time fetch of a program by id.

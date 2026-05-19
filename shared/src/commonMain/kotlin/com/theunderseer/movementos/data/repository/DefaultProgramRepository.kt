@@ -24,7 +24,7 @@ private const val SYNC_TABLE = "Programs"
  * - Success once DB emits
  * - Error with cached fallback if network refresh fails
  *
- * Errors are logged but never thrown to subscribers — graceful degradation.
+ * Errors are logged but never thrown to subscribers (graceful degradation).
  */
 internal class DefaultProgramRepository(
     private val local: ProgramLocalDataSource,

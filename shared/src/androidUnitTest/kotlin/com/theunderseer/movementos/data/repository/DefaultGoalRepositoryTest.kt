@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import co.touchlab.kermit.Logger
 import com.theunderseer.movementos.data.local.GoalLocalDataSource
 import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
+import com.theunderseer.movementos.data.orchestration.RepositoryOrchestration
 import com.theunderseer.movementos.data.orchestration.StaleChecker
 import com.theunderseer.movementos.data.remote.GoalRemoteDataSource
 import com.theunderseer.movementos.database.MovementOSDatabase
@@ -42,10 +43,13 @@ class DefaultGoalRepositoryTest {
             DefaultGoalRepository(
                 local = local,
                 remote = remote,
-                syncMetadata = syncMetadata,
-                staleChecker = StaleChecker(ttl = 1.hours),
-                dispatcher = Dispatchers.Unconfined,
-                logger = Logger.withTag("test"),
+                orchestration =
+                    RepositoryOrchestration(
+                        syncMetadata = syncMetadata,
+                        staleChecker = StaleChecker(ttl = 1.hours),
+                        dispatcher = Dispatchers.Unconfined,
+                        logger = Logger.withTag("test"),
+                    ),
             )
     }
 
