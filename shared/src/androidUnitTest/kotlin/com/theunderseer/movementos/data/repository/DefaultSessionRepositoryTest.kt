@@ -2,9 +2,16 @@ package com.theunderseer.movementos.data.repository
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import app.cash.turbine.test
+import co.touchlab.kermit.Logger
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
 import com.theunderseer.movementos.data.local.SessionLocalDataSource
+import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
+import com.theunderseer.movementos.data.orchestration.RepositoryOrchestration
+import com.theunderseer.movementos.data.orchestration.StaleChecker
+import com.theunderseer.movementos.data.remote.SessionRemoteDataSource
 import com.theunderseer.movementos.database.MovementOSDatabase
+import com.theunderseer.movementos.domain.common.DataError
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.ProgressEntry
 import com.theunderseer.movementos.domain.model.Session
 import com.theunderseer.movementos.domain.model.values.DifficultyLevel
@@ -14,25 +21,41 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class DefaultSessionRepositoryTest {
     private lateinit var repository: DefaultSessionRepository
-    private lateinit var database: MovementOSDatabase
+    private lateinit var progressDs: ProgressLocalDataSource
+    private val remote = FakeSessionRemoteDataSource()
+    private lateinit var syncMetadata: SyncMetadataLocalDataSource
 
     @BeforeTest
     fun setup() {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         MovementOSDatabase.Schema.create(driver)
-        database = MovementOSDatabase(driver)
-
-        val sessionDs = SessionLocalDataSource(database, Dispatchers.Unconfined)
-        val progressDs = ProgressLocalDataSource(database, Dispatchers.Unconfined)
-        repository = DefaultSessionRepository(sessionDs, progressDs)
+        val db = MovementOSDatabase(driver)
+        val sessionDs = SessionLocalDataSource(db, Dispatchers.Unconfined)
+        progressDs = ProgressLocalDataSource(db, Dispatchers.Unconfined)
+        syncMetadata = SyncMetadataLocalDataSource(db, Dispatchers.Unconfined)
+        repository =
+            DefaultSessionRepository(
+                sessionDataSource = sessionDs,
+                progressDataSource = progressDs,
+                remote = remote,
+                orchestration =
+                    RepositoryOrchestration(
+                        syncMetadata = syncMetadata,
+                        staleChecker = StaleChecker(ttl = 1.hours),
+                        dispatcher = Dispatchers.Unconfined,
+                        logger = Logger.withTag("test"),
+                    ),
+            )
     }
 
     private val testEntry =
@@ -99,25 +122,82 @@ class DefaultSessionRepositoryTest {
     // --- observeProgressHistory ---
 
     @Test
-    fun `observeProgressHistory emits empty list initially`() =
+    fun `cache hit - emits Loading then Success from local without remote call`() =
         runTest {
+            progressDs.upsert(testEntry)
+            syncMetadata.markSynced("Progress")
+
             repository.observeProgressHistory().test {
-                assertEquals(emptyList(), awaitItem())
+                val loading = awaitItem()
+                assertIs<DataState.Loading<List<ProgressEntry>>>(loading)
+                assertEquals(1, loading.cached?.size)
+
+                val success = awaitItem()
+                assertIs<DataState.Success<List<ProgressEntry>>>(success)
+                assertEquals(1, success.data.size)
+                assertEquals(0, remote.fetchCount)
+
                 cancelAndIgnoreRemainingEvents()
             }
         }
 
     @Test
-    fun `observeProgressHistory emits updated list after recordCompletion`() =
+    fun `cache miss - fetches remote, saves to local, emits Success`() =
         runTest {
+            remote.historyToReturn = listOf(testEntry)
+
             repository.observeProgressHistory().test {
-                assertEquals(emptyList(), awaitItem())
+                val loading = awaitItem()
+                assertIs<DataState.Loading<List<ProgressEntry>>>(loading)
+                assertTrue(loading.cached.isNullOrEmpty())
 
-                repository.recordCompletion(testEntry)
-                assertEquals(1, awaitItem().size)
+                val success = awaitItem()
+                assertIs<DataState.Success<List<ProgressEntry>>>(success)
+                assertEquals(testEntry.id, success.data.first().id)
+                assertEquals(1, remote.fetchCount)
 
-                repository.recordCompletion(testEntry.copy(id = "pe-2"))
-                assertEquals(2, awaitItem().size)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `network failure with cached data - emits Error with cached fallback`() =
+        runTest {
+            progressDs.upsert(testEntry)
+            // don't markSynced -> stale -> triggers fetch
+            remote.shouldThrow = true
+
+            repository.observeProgressHistory().test {
+                val loading = awaitItem()
+                assertIs<DataState.Loading<List<ProgressEntry>>>(loading)
+
+                val error = awaitItem()
+                assertIs<DataState.Error<List<ProgressEntry>>>(error)
+                assertEquals(1, error.cached?.size)
+                assertEquals(DataError.Unknown::class, error.error::class)
+
+                // local Flow still emits cached
+                val success = awaitItem()
+                assertIs<DataState.Success<List<ProgressEntry>>>(success)
+                assertEquals(testEntry.id, success.data.first().id)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `forceRefresh - triggers fetch even when fresh`() =
+        runTest {
+            progressDs.upsert(testEntry)
+            syncMetadata.markSynced("Progress")
+            remote.historyToReturn = listOf(testEntry, testEntry.copy(id = "pe-2"))
+
+            repository.observeProgressHistory(forceRefresh = true).test {
+                awaitItem() // Loading
+
+                val success = awaitItem()
+                assertIs<DataState.Success<List<ProgressEntry>>>(success)
+                assertEquals(1, remote.fetchCount)
 
                 cancelAndIgnoreRemainingEvents()
             }
@@ -174,4 +254,21 @@ class DefaultSessionRepositoryTest {
             repository.recordCompletion(testEntry)
             assertEquals("s-1", repository.getNextSession(sessions)?.id)
         }
+}
+
+private class FakeSessionRemoteDataSource : SessionRemoteDataSource {
+    var historyToReturn: List<ProgressEntry> = emptyList()
+    var shouldThrow: Boolean = false
+    var fetchCount: Int = 0
+
+    override suspend fun recordCompletion(entry: ProgressEntry) = Unit
+
+    override suspend fun getProgressHistory(): List<ProgressEntry> {
+        fetchCount++
+        if (shouldThrow) throw RuntimeException("Network down")
+        return historyToReturn
+    }
+
+    override suspend fun getProgressForSession(sessionId: String): List<ProgressEntry> =
+        historyToReturn.filter { it.sessionId == sessionId }
 }

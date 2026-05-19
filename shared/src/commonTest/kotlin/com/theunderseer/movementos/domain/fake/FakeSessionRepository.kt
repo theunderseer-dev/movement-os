@@ -1,5 +1,7 @@
 package com.theunderseer.movementos.domain.fake
 
+import com.theunderseer.movementos.domain.common.DataError
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.ProgressEntry
 import com.theunderseer.movementos.domain.model.Session
 import com.theunderseer.movementos.domain.repository.SessionRepository
@@ -7,19 +9,39 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSessionRepository : SessionRepository {
-    private val entries = MutableStateFlow<List<ProgressEntry>>(emptyList())
+    private val stateFlow = MutableStateFlow<DataState<List<ProgressEntry>>>(DataState.Success(emptyList()))
 
-    override suspend fun recordCompletion(entry: ProgressEntry) {
-        entries.value = entries.value + entry
+    fun setHistory(entries: List<ProgressEntry>) {
+        stateFlow.value = DataState.Success(entries)
     }
 
-    override fun observeProgressHistory(): Flow<List<ProgressEntry>> = entries
+    fun setLoading(cached: List<ProgressEntry>? = null) {
+        stateFlow.value = DataState.Loading(cached)
+    }
 
-    override suspend fun getProgressForSession(sessionId: String): List<ProgressEntry> = entries.value.filter { it.sessionId == sessionId }
+    fun setError(cached: List<ProgressEntry>? = null) {
+        stateFlow.value = DataState.Error(DataError.Network, cached)
+    }
+
+    override suspend fun recordCompletion(entry: ProgressEntry) {
+        stateFlow.value = DataState.Success(currentEntries() + entry)
+    }
+
+    override fun observeProgressHistory(forceRefresh: Boolean): Flow<DataState<List<ProgressEntry>>> = stateFlow
+
+    override suspend fun getProgressForSession(sessionId: String): List<ProgressEntry> =
+        currentEntries().filter { it.sessionId == sessionId }
 
     override suspend fun getNextSession(programSessions: List<Session>): Session? {
-        val completedIds = entries.value.map { it.sessionId }.toSet()
+        val completedIds = currentEntries().map { it.sessionId }.toSet()
         return programSessions.firstOrNull { it.id !in completedIds }
             ?: programSessions.firstOrNull()
     }
+
+    private fun currentEntries(): List<ProgressEntry> =
+        when (val s = stateFlow.value) {
+            is DataState.Success -> s.data
+            is DataState.Loading -> s.cached ?: emptyList()
+            is DataState.Error -> s.cached ?: emptyList()
+        }
 }

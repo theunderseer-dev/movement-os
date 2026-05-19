@@ -1,5 +1,6 @@
 package com.theunderseer.movementos.domain.usecase
 
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.UserGoal
 import com.theunderseer.movementos.domain.model.values.DifficultyLevel
 import com.theunderseer.movementos.domain.model.values.Duration
@@ -23,11 +24,13 @@ class AdaptDifficultyUseCase(
     private val sessionRepository: SessionRepository,
 ) {
     suspend operator fun invoke(currentGoal: UserGoal): UserGoal {
+        val recentState = sessionRepository.observeProgressHistory().first()
         val recent =
-            sessionRepository
-                .observeProgressHistory()
-                .first()
-                .take(STREAK_THRESHOLD)
+            when (recentState) {
+                is DataState.Success -> recentState.data.take(STREAK_THRESHOLD)
+                is DataState.Loading -> recentState.cached?.take(STREAK_THRESHOLD).orEmpty()
+                is DataState.Error -> recentState.cached?.take(STREAK_THRESHOLD).orEmpty()
+            }
 
         if (recent.size < STREAK_THRESHOLD) return currentGoal
 

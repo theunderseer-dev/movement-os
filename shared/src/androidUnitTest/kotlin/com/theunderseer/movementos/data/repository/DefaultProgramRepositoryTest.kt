@@ -2,9 +2,16 @@ package com.theunderseer.movementos.data.repository
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import app.cash.turbine.test
+import co.touchlab.kermit.Logger
 import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.SessionLocalDataSource
+import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
+import com.theunderseer.movementos.data.orchestration.RepositoryOrchestration
+import com.theunderseer.movementos.data.orchestration.StaleChecker
+import com.theunderseer.movementos.data.remote.ProgramRemoteDataSource
 import com.theunderseer.movementos.database.MovementOSDatabase
+import com.theunderseer.movementos.domain.common.DataError
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.Program
 import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.Dispatchers
@@ -12,24 +19,39 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class DefaultProgramRepositoryTest {
     private lateinit var repository: DefaultProgramRepository
-    private lateinit var database: MovementOSDatabase
+    private lateinit var local: ProgramLocalDataSource
+    private val remote = FakeProgramRemoteDataSource()
+    private lateinit var syncMetadata: SyncMetadataLocalDataSource
 
     @BeforeTest
     fun setup() {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         MovementOSDatabase.Schema.create(driver)
-        database = MovementOSDatabase(driver)
-
-        val sessionDs = SessionLocalDataSource(database, Dispatchers.Unconfined)
-        val programDs = ProgramLocalDataSource(database, sessionDs, Dispatchers.Unconfined)
-        repository = DefaultProgramRepository(programDs)
+        val db = MovementOSDatabase(driver)
+        val sessionDs = SessionLocalDataSource(db, Dispatchers.Unconfined)
+        local = ProgramLocalDataSource(db, sessionDs, Dispatchers.Unconfined)
+        syncMetadata = SyncMetadataLocalDataSource(db, Dispatchers.Unconfined)
+        repository =
+            DefaultProgramRepository(
+                local = local,
+                remote = remote,
+                orchestration =
+                    RepositoryOrchestration(
+                        syncMetadata = syncMetadata,
+                        staleChecker = StaleChecker(ttl = 1.hours),
+                        dispatcher = Dispatchers.Unconfined,
+                        logger = Logger.withTag("test"),
+                    ),
+            )
     }
 
     private val testProgram =
@@ -45,48 +67,101 @@ class DefaultProgramRepositoryTest {
         )
 
     @Test
-    fun `saves and retrieves program by id`() =
+    fun `cache hit - emits Loading then Success from local without remote call`() =
         runTest {
-            repository.save(testProgram)
+            local.save(testProgram)
+            syncMetadata.markSynced("Programs") // mark fresh, no fetch needed
 
-            val retrieved = repository.getById(testProgram.id)
-            assertEquals(testProgram.id, retrieved?.id)
-            assertEquals(testProgram.name, retrieved?.name)
-        }
-
-    @Test
-    fun `observeActiveProgram emits null initially then saved program`() =
-        runTest {
             repository.observeActiveProgram().test {
-                assertNull(awaitItem())
+                val loading = awaitItem()
+                assertIs<DataState.Loading<Program>>(loading)
+                assertEquals(testProgram.id, loading.cached?.id)
 
-                repository.save(testProgram)
-                assertEquals(testProgram.id, awaitItem()?.id)
+                val success = awaitItem()
+                assertIs<DataState.Success<Program>>(success)
+                assertEquals(testProgram.id, success.data.id)
+                assertEquals(0, remote.fetchCount) // no remote call
 
                 cancelAndIgnoreRemainingEvents()
             }
         }
 
     @Test
-    fun `saving second program deactivates the first`() =
+    fun `cache miss - fetches remote, saves to local, emits Success`() =
         runTest {
-            repository.save(testProgram)
-            val second = testProgram.copy(id = "p-2", name = "Advanced")
-            repository.save(second)
+            remote.programToReturn = testProgram
 
-            val first = repository.getById("p-1")
-            val secondRetrieved = repository.getById("p-2")
-            assertEquals(false, first?.isActive)
-            assertEquals(true, secondRetrieved?.isActive)
+            repository.observeActiveProgram().test {
+                val loading = awaitItem()
+                assertIs<DataState.Loading<Program>>(loading)
+                assertNull(loading.cached)
+
+                // remote fetch -> save -> local emits
+                val success = awaitItem()
+                assertIs<DataState.Success<Program>>(success)
+                assertEquals(testProgram.id, success.data.id)
+                assertEquals(1, remote.fetchCount)
+
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 
     @Test
-    fun `deactivate marks program inactive without deleting`() =
+    fun `network failure with cached data - emits Error with cached fallback`() =
         runTest {
-            repository.save(testProgram)
-            repository.deactivate(testProgram.id)
+            local.save(testProgram)
+            // don't markSynced -> stale -> triggers fetch
+            remote.shouldThrow = true
 
-            val retrieved = repository.getById(testProgram.id)
-            assertEquals(false, retrieved?.isActive)
+            repository.observeActiveProgram().test {
+                val loading = awaitItem()
+                assertIs<DataState.Loading<Program>>(loading)
+
+                // remote fails, emit Error with cached
+                val error = awaitItem()
+                assertIs<DataState.Error<Program>>(error)
+                assertEquals(testProgram.id, error.cached?.id)
+                assertEquals(DataError.Unknown::class, error.error::class)
+
+                // local Flow still emits cached
+                val success = awaitItem()
+                assertIs<DataState.Success<Program>>(success)
+                assertEquals(testProgram.id, success.data.id)
+
+                cancelAndIgnoreRemainingEvents()
+            }
         }
+
+    @Test
+    fun `forceRefresh - triggers fetch even when fresh`() =
+        runTest {
+            local.save(testProgram)
+            syncMetadata.markSynced("Programs")
+            remote.programToReturn = testProgram.copy(name = "Refreshed plan")
+
+            repository.observeActiveProgram(forceRefresh = true).test {
+                awaitItem() // Loading
+
+                val success = awaitItem()
+                assertIs<DataState.Success<Program>>(success)
+                // After remote refresh, local emits updated program
+                assertEquals(1, remote.fetchCount)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+}
+
+private class FakeProgramRemoteDataSource : ProgramRemoteDataSource {
+    var programToReturn: Program? = null
+    var shouldThrow: Boolean = false
+    var fetchCount: Int = 0
+
+    override suspend fun getActive(): Program? {
+        fetchCount++
+        if (shouldThrow) throw RuntimeException("Network down")
+        return programToReturn
+    }
+
+    override suspend fun upsert(program: Program) = Unit
 }

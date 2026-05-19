@@ -1,5 +1,6 @@
 package com.theunderseer.movementos.domain.repository
 
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.ProgressEntry
 import com.theunderseer.movementos.domain.model.Session
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,7 @@ interface SessionRepository {
     /**
      * Stream of all progress entries, newest first.
      */
-    fun observeProgressHistory(): Flow<List<ProgressEntry>>
+    fun observeProgressHistory(forceRefresh: Boolean = false): Flow<DataState<List<ProgressEntry>>>
 
     /**
      * One-time fetch of progress for a specific session.

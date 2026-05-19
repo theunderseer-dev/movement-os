@@ -1,9 +1,12 @@
 package com.theunderseer.movementos.domain.fake
 
+import com.theunderseer.movementos.domain.common.DataError
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.Program
 import com.theunderseer.movementos.domain.repository.ProgramRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -11,7 +14,14 @@ class FakeProgramRepository : ProgramRepository {
     private val programs = mutableMapOf<String, Program>()
     private val activeProgramFlow = MutableStateFlow<Program?>(null)
 
-    override fun observeActiveProgram(): Flow<Program?> = activeProgramFlow
+    override fun observeActiveProgram(forceRefresh: Boolean): Flow<DataState<Program>> =
+        activeProgramFlow.map { program ->
+            if (program != null) {
+                DataState.Success(program)
+            } else {
+                DataState.Error(DataError.NotFound)
+            }
+        }
 
     override suspend fun getById(id: String): Program? = programs[id]
 

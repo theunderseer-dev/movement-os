@@ -1,13 +1,14 @@
 package com.theunderseer.movementos.domain.usecase
 
 import app.cash.turbine.test
+import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.fake.FakeProgramRepository
 import com.theunderseer.movementos.domain.model.Program
 import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertIs
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -29,10 +30,10 @@ class GetActiveProgramUseCaseTest {
         )
 
     @Test
-    fun `emits null when no program is active`() =
+    fun `emits error when no program is active`() =
         runTest {
             useCase().test {
-                assertNull(awaitItem())
+                assertIs<DataState.Error<Program>>(awaitItem())
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -41,13 +42,13 @@ class GetActiveProgramUseCaseTest {
     fun `emits saved program when one is generated`() =
         runTest {
             useCase().test {
-                assertNull(awaitItem())
+                assertIs<DataState.Error<Program>>(awaitItem())
 
                 repository.save(testProgram)
 
-                val emitted = awaitItem()
-                assertEquals(testProgram.id, emitted?.id)
-                assertEquals(true, emitted?.isActive)
+                val emitted = assertIs<DataState.Success<Program>>(awaitItem())
+                assertEquals(testProgram.id, emitted.data.id)
+                assertEquals(true, emitted.data.isActive)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -59,29 +60,29 @@ class GetActiveProgramUseCaseTest {
             val secondProgram = testProgram.copy(id = "program-2", name = "Advanced plan")
 
             useCase().test {
-                assertNull(awaitItem())
+                assertIs<DataState.Error<Program>>(awaitItem())
 
                 repository.save(firstProgram)
-                assertEquals("program-1", awaitItem()?.id)
+                assertEquals("program-1", assertIs<DataState.Success<Program>>(awaitItem()).data.id)
 
                 repository.save(secondProgram)
-                assertEquals("program-2", awaitItem()?.id)
+                assertEquals("program-2", assertIs<DataState.Success<Program>>(awaitItem()).data.id)
 
                 cancelAndIgnoreRemainingEvents()
             }
         }
 
     @Test
-    fun `emits null after program is deactivated`() =
+    fun `emits error after program is deactivated`() =
         runTest {
             useCase().test {
-                assertNull(awaitItem())
+                assertIs<DataState.Error<Program>>(awaitItem())
 
                 repository.save(testProgram)
-                assertEquals(testProgram.id, awaitItem()?.id)
+                assertEquals(testProgram.id, assertIs<DataState.Success<Program>>(awaitItem()).data.id)
 
                 repository.deactivate(testProgram.id)
-                assertNull(awaitItem())
+                assertIs<DataState.Error<Program>>(awaitItem())
 
                 cancelAndIgnoreRemainingEvents()
             }
