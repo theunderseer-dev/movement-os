@@ -22,45 +22,31 @@ import kotlinx.coroutines.flow.map
  * 5. On failure, emit Error with cached data (silent fallback)
  * 6. DB Flow continues streaming — UI updates reactively from local writes
  *
- * Local DB is the single source of truth — UI only observes [loadFromLocal].
+ * Local DB is the single source of truth. UI only observes [loadFromLocal].
  * Network calls are side effects that update the DB.
- *
- * @param loadFromLocal cold Flow from local data source
- * @param shouldFetch decide whether remote fetch is needed (TTL, force flag, etc.)
- * @param fetchRemote suspend fun making network call
- * @param saveRemoteResult persist remote result to DB
- * @param errorMapper map exceptions to typed [DataError]
  * @param dispatcher background dispatcher for I/O
  */
 internal fun <Local, Remote> networkBoundResource(
-    loadFromLocal: () -> Flow<Local?>,
-    shouldFetch: suspend (Local?) -> Boolean,
-    fetchRemote: suspend () -> Remote,
-    saveRemoteResult: suspend (Remote) -> Unit,
-    errorMapper: (Throwable) -> DataError = { mapDefaultError(it) },
+    config: NetworkBoundResourceConfig<Local, Remote>,
     dispatcher: CoroutineDispatcher,
 ): Flow<DataState<Local>> =
     flow {
-        val cached = loadFromLocal().first()
+        val cached = config.loadFromLocal().first()
         emit(DataState.Loading(cached))
 
-        val shouldRefresh =
-            try {
-                shouldFetch(cached)
-            } catch (e: Throwable) {
-                false
-            }
+        val shouldRefresh = runCatching { config.shouldFetch(cached) }.getOrDefault(false)
 
         if (shouldRefresh) {
-            runCatching { fetchRemote() }
-                .onSuccess { remote -> saveRemoteResult(remote) }
+            runCatching { config.fetchRemote() }
+                .onSuccess { remote -> config.saveRemoteResult(remote) }
                 .onFailure { throwable ->
-                    emit(DataState.Error(errorMapper(throwable), cached))
+                    emit(DataState.Error(config.errorMapper(throwable), cached))
                 }
         }
 
         emitAll(
-            loadFromLocal()
+            config
+                .loadFromLocal()
                 .map { local ->
                     if (local != null) {
                         DataState.Success(local)
@@ -70,9 +56,3 @@ internal fun <Local, Remote> networkBoundResource(
                 }.catch { emit(DataState.Error(DataError.Local, cached)) },
         )
     }.flowOn(dispatcher)
-
-private fun mapDefaultError(throwable: Throwable): DataError =
-    when (throwable) {
-        // Specific Ktor/SQLDelight mapping happens at repository level if needed
-        else -> DataError.Unknown(throwable.message)
-    }

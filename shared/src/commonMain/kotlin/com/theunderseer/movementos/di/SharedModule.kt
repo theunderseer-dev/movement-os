@@ -6,6 +6,7 @@ import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
 import com.theunderseer.movementos.data.local.SessionLocalDataSource
 import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
+import com.theunderseer.movementos.data.orchestration.RepositoryOrchestration
 import com.theunderseer.movementos.data.orchestration.StaleChecker
 import com.theunderseer.movementos.data.remote.GoalRemoteDataSource
 import com.theunderseer.movementos.data.remote.ProgramRemoteDataSource
@@ -46,32 +47,35 @@ val sharedModule =
         single { GoalLocalDataSource(get(), get(named("io"))) }
         single { ProgressLocalDataSource(get(), get(named("io"))) }
 
-        single<ProgramRepository> {
-            DefaultProgramRepository(
-                local = get(),
-                remote = get(),
+        single {
+            RepositoryOrchestration(
                 syncMetadata = get(),
                 staleChecker = get(named("programStaleChecker")),
                 dispatcher = get(named("io")),
             )
         }
+
+        single<ProgramRepository> {
+            DefaultProgramRepository(
+                local = get(),
+                remote = get(),
+                orchestration = get(),
+            )
+        }
+
         single<SessionRepository> {
             DefaultSessionRepository(
                 sessionDataSource = get(),
                 progressDataSource = get(),
                 remote = get(),
-                syncMetadata = get(),
-                staleChecker = get(named("sessionStaleChecker")),
-                dispatcher = get(named("io")),
+                orchestration = get(),
             )
         }
         single<GoalRepository> {
             DefaultGoalRepository(
                 local = get(),
                 remote = get(),
-                syncMetadata = get(),
-                staleChecker = get(named("goalStaleChecker")),
-                dispatcher = get(named("io")),
+                orchestration = get(),
             )
         }
     }
