@@ -47,11 +47,11 @@ I[iOS App<br/>SwiftUI · KMM consumer] --> S
     S --> DA[data<br/>repositories, sources]
     S --> N[network<br/>Ktor client, LLM proxy]
     S --> DB[database<br/>SQLDelight]
-    
+
     N -.optional.-> B[Backend<br/>Ktor server]
     B --> P[LLM proxy<br/>rate limit, cache]
     B --> SY[Sync endpoint<br/>offline-first]
-    
+
     style A fill:#e1f5ee,stroke:#0f6e56
     style I fill:#e6f1fb,stroke:#185fa5
     style S fill:#faeeda,stroke:#854f0b
@@ -69,7 +69,7 @@ Detailed reasoning in [`/docs/architecture`](./docs/architecture).
 
 ## Status & roadmap
 
-This is built in public over 4 weeks. Follow progress in the [project board](https://github.com/theunderseer-dev/movement-os/projects/1).
+This is built in public over 4 weeks. Follow progress in the [project board](https://github.com/users/theunderseer-dev/projects/1/views/1).
 
 - [x] Project structure, multi-module, CI
 - [ ] Domain & data layer (KMM)
