@@ -186,7 +186,5 @@ private class FakeGoalRemoteDataSource : GoalRemoteDataSource {
         return goalToReturn
     }
 
-    override suspend fun getById(id: String): UserGoal? = goalToReturn?.takeIf { it.id == id }
-
     override suspend fun upsert(goal: UserGoal) = Unit
 }
