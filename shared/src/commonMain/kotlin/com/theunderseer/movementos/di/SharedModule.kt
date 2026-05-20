@@ -6,6 +6,17 @@ import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
 import com.theunderseer.movementos.data.local.SessionLocalDataSource
 import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
+import com.theunderseer.movementos.data.network.NetworkConfig
+import com.theunderseer.movementos.data.network.auth.AuthRefreshHandler
+import com.theunderseer.movementos.data.network.auth.AuthTokenStorage
+import com.theunderseer.movementos.data.network.auth.InMemoryAuthTokenStorage
+import com.theunderseer.movementos.data.network.auth.StubAuthRefreshHandler
+import com.theunderseer.movementos.data.network.createHttpClient
+import com.theunderseer.movementos.data.network.llm.LlmApiClient
+import com.theunderseer.movementos.data.network.llm.LlmApiClientKtorImpl
+import com.theunderseer.movementos.data.network.remote.GoalRemoteDataSourceKtorImpl
+import com.theunderseer.movementos.data.network.remote.ProgramRemoteDataSourceKtorImpl
+import com.theunderseer.movementos.data.network.remote.SessionRemoteDataSourceKtorImpl
 import com.theunderseer.movementos.data.orchestration.RepositoryOrchestration
 import com.theunderseer.movementos.data.orchestration.StaleChecker
 import com.theunderseer.movementos.data.remote.GoalRemoteDataSource
@@ -54,6 +65,22 @@ val sharedModule =
                 dispatcher = get(named("io")),
             )
         }
+
+        single {
+            NetworkConfig(
+                baseUrl = "https://api.movementos.dev", // placeholder; replace in Phase 4
+                isDebug = true, // platform-specific via expect/actual later
+            )
+        }
+        single<AuthTokenStorage> { InMemoryAuthTokenStorage() }
+        single<AuthRefreshHandler> { StubAuthRefreshHandler() }
+        single { createHttpClient(get(), get(), get()) }
+
+        single<LlmApiClient> { LlmApiClientKtorImpl(get()) }
+
+        single<ProgramRemoteDataSource> { ProgramRemoteDataSourceKtorImpl(get()) }
+        single<SessionRemoteDataSource> { SessionRemoteDataSourceKtorImpl(get()) }
+        single<GoalRemoteDataSource> { GoalRemoteDataSourceKtorImpl(get()) }
 
         single<ProgramRepository> {
             DefaultProgramRepository(

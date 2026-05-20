@@ -268,7 +268,4 @@ private class FakeSessionRemoteDataSource : SessionRemoteDataSource {
         if (shouldThrow) throw RuntimeException("Network down")
         return historyToReturn
     }
-
-    override suspend fun getProgressForSession(sessionId: String): List<ProgressEntry> =
-        historyToReturn.filter { it.sessionId == sessionId }
 }

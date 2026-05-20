@@ -47,18 +47,26 @@ kotlin {
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines.ext)
             implementation(libs.kermit)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.auth)
+            implementation(libs.ktor.serialization.kotlinx.json)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
+            implementation(libs.ktor.client.cio)
             implementation(libs.sqldelight.android.driver)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
+            implementation(libs.ktor.client.mock)
         }
         androidUnitTest.dependencies {
             implementation(libs.sqldelight.jvm.driver)
