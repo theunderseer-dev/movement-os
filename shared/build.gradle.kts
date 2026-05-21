@@ -2,10 +2,33 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("movementos.quality")
+    alias(libs.plugins.kover)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes("com.theunderseer.movementos.domain.usecase.*")
+            }
+            excludes {
+                classes("**.*Test*")
+            }
+        }
+        verify {
+            rule {
+                minBound(80)
+            }
+        }
+        total {
+            html { onCheck = false }
+            xml { onCheck = false }
+        }
+    }
 }
 
 sqldelight {
