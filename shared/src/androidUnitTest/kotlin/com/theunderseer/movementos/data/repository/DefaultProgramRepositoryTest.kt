@@ -3,6 +3,7 @@ package com.theunderseer.movementos.data.repository
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import app.cash.turbine.test
 import co.touchlab.kermit.Logger
+import com.theunderseer.movementos.core.testing.fixtures.TestPrograms
 import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.SessionLocalDataSource
 import com.theunderseer.movementos.data.local.SyncMetadataLocalDataSource
@@ -13,7 +14,6 @@ import com.theunderseer.movementos.database.MovementOSDatabase
 import com.theunderseer.movementos.domain.common.DataError
 import com.theunderseer.movementos.domain.common.DataState
 import com.theunderseer.movementos.domain.model.Program
-import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
@@ -23,7 +23,6 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class DefaultProgramRepositoryTest {
@@ -31,6 +30,8 @@ class DefaultProgramRepositoryTest {
     private lateinit var local: ProgramLocalDataSource
     private val remote = FakeProgramRemoteDataSource()
     private lateinit var syncMetadata: SyncMetadataLocalDataSource
+
+    private lateinit var orchestration: RepositoryOrchestration
 
     @BeforeTest
     fun setup() {
@@ -40,37 +41,28 @@ class DefaultProgramRepositoryTest {
         val sessionDs = SessionLocalDataSource(db, Dispatchers.Unconfined)
         local = ProgramLocalDataSource(db, sessionDs, Dispatchers.Unconfined)
         syncMetadata = SyncMetadataLocalDataSource(db, Dispatchers.Unconfined)
+        orchestration =
+            RepositoryOrchestration(
+                syncMetadata,
+                StaleChecker(ttl = 1.hours),
+                Dispatchers.Unconfined,
+                Logger.withTag("test"),
+            )
         repository =
             DefaultProgramRepository(
                 local = local,
                 remote = remote,
-                orchestration =
-                    RepositoryOrchestration(
-                        syncMetadata = syncMetadata,
-                        staleChecker = StaleChecker(ttl = 1.hours),
-                        dispatcher = Dispatchers.Unconfined,
-                        logger = Logger.withTag("test"),
-                    ),
+                orchestration = orchestration,
             )
     }
 
-    private val testProgram =
-        Program(
-            id = "p-1",
-            goalId = "g-1",
-            name = "Back relief",
-            description = "10-day plan",
-            primaryType = MovementType.BACK_PAIN_RELIEF,
-            sessions = emptyList(),
-            generatedAt = Instant.fromEpochMilliseconds(1_700_000_000_000),
-            isActive = true,
-        )
+    private val testProgram = TestPrograms.aProgram()
 
     @Test
     fun `cache hit - emits Loading then Success from local without remote call`() =
         runTest {
             local.save(testProgram)
-            syncMetadata.markSynced("Programs") // mark fresh, no fetch needed
+            syncMetadata.markSynced("Programs")
 
             repository.observeActiveProgram().test {
                 val loading = awaitItem()
@@ -80,7 +72,7 @@ class DefaultProgramRepositoryTest {
                 val success = awaitItem()
                 assertIs<DataState.Success<Program>>(success)
                 assertEquals(testProgram.id, success.data.id)
-                assertEquals(0, remote.fetchCount) // no remote call
+                assertEquals(0, remote.fetchCount)
 
                 cancelAndIgnoreRemainingEvents()
             }
@@ -96,7 +88,6 @@ class DefaultProgramRepositoryTest {
                 assertIs<DataState.Loading<Program>>(loading)
                 assertNull(loading.cached)
 
-                // remote fetch -> save -> local emits
                 val success = awaitItem()
                 assertIs<DataState.Success<Program>>(success)
                 assertEquals(testProgram.id, success.data.id)
@@ -110,20 +101,17 @@ class DefaultProgramRepositoryTest {
     fun `network failure with cached data - emits Error with cached fallback`() =
         runTest {
             local.save(testProgram)
-            // don't markSynced -> stale -> triggers fetch
             remote.shouldThrow = true
 
             repository.observeActiveProgram().test {
                 val loading = awaitItem()
                 assertIs<DataState.Loading<Program>>(loading)
 
-                // remote fails, emit Error with cached
                 val error = awaitItem()
                 assertIs<DataState.Error<Program>>(error)
                 assertEquals(testProgram.id, error.cached?.id)
                 assertEquals(DataError.Unknown::class, error.error::class)
 
-                // local Flow still emits cached
                 val success = awaitItem()
                 assertIs<DataState.Success<Program>>(success)
                 assertEquals(testProgram.id, success.data.id)
@@ -137,14 +125,13 @@ class DefaultProgramRepositoryTest {
         runTest {
             local.save(testProgram)
             syncMetadata.markSynced("Programs")
-            remote.programToReturn = testProgram.copy(name = "Refreshed plan")
+            remote.programToReturn = TestPrograms.aProgram(name = "Refreshed plan")
 
             repository.observeActiveProgram(forceRefresh = true).test {
-                awaitItem() // Loading
+                awaitItem()
 
                 val success = awaitItem()
                 assertIs<DataState.Success<Program>>(success)
-                // After remote refresh, local emits updated program
                 assertEquals(1, remote.fetchCount)
 
                 cancelAndIgnoreRemainingEvents()
