@@ -6,3 +6,7 @@ plugins {
 android {
     namespace = "com.theunderseer.movementos.feature.onboarding"
 }
+
+dependencies {
+    testImplementation(projects.core.testing)
+}
