@@ -7,8 +7,13 @@ complexity:
   LongMethod:
     threshold: 60
   LongParameterList:
+    active: true
     functionThreshold: 6
     constructorThreshold: 7
+    excludes:
+        - '**/testing/**'
+        - '**/fixtures/**'
+        - '**/*Test.kt'
   TooManyFunctions:
     thresholdInFiles: 15
     thresholdInClasses: 15
@@ -26,6 +31,9 @@ style:
       - '**/theme/Typography.kt'
       - '**/theme/Spacing.kt'
       - '**/theme/Shape.kt'
+      - '**/testing/**'
+      - '**/fixtures/**'
+      - '**/*Test.kt'
   MaxLineLength:
     maxLineLength: 140
   WildcardImport:

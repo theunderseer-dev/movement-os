@@ -82,6 +82,16 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
+      -   name: Run coverage with Kover
+          run: ./gradlew koverVerify
+
+      -   name: Upload coverage report
+          if: success() || failure()
+          uses: actions/upload-artifact@v4
+          with:
+              name: kover-report
+              path: shared/build/reports/kover/
+
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4

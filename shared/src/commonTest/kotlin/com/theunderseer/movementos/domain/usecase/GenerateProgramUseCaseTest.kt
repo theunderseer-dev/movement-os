@@ -1,30 +1,19 @@
 package com.theunderseer.movementos.domain.usecase
 
+import com.theunderseer.movementos.core.testing.fixtures.TestGoals
+import com.theunderseer.movementos.core.testing.fixtures.TestPrograms
+import com.theunderseer.movementos.core.testing.time.FixedClock
 import com.theunderseer.movementos.domain.fake.FakeProgramRepository
-import com.theunderseer.movementos.domain.model.Program
-import com.theunderseer.movementos.domain.model.UserGoal
-import com.theunderseer.movementos.domain.model.values.Duration
-import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class GenerateProgramUseCaseTest {
-    private val testGoal =
-        UserGoal(
-            id = "goal-1",
-            description = "Fix back pain",
-            focus = MovementType.BACK_PAIN_RELIEF,
-            sessionsPerWeek = 3,
-            timePerSession = Duration.ofMinutes(15),
-            createdAt = Instant.fromEpochMilliseconds(1_700_000_000_000),
-        )
+    private val testGoal = TestGoals.aGoal()
 
     @Test
     fun `generates program and persists as active`() =
@@ -32,14 +21,10 @@ class GenerateProgramUseCaseTest {
             val repo = FakeProgramRepository()
             val generator =
                 ProgramGenerator { goal ->
-                    Program(
+                    TestPrograms.aProgram(
                         id = "program-1",
                         goalId = goal.id,
-                        name = "Back relief program",
-                        description = "10-day plan",
-                        primaryType = goal.focus,
-                        sessions = emptyList(),
-                        generatedAt = Clock.System.now(),
+                        generatedAt = FixedClock.DEFAULT_INSTANT,
                         isActive = false,
                     )
                 }

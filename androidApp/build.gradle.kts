@@ -45,6 +45,7 @@ kotlin {
 dependencies {
     implementation(projects.shared)
     implementation(projects.core.designsystem)
+    testImplementation(projects.core.testing)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

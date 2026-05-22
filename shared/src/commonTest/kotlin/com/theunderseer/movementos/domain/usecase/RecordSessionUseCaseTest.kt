@@ -1,69 +1,48 @@
 package com.theunderseer.movementos.domain.usecase
 
+import com.theunderseer.movementos.core.testing.fixtures.TestSessions
+import com.theunderseer.movementos.core.testing.time.FixedClock
 import com.theunderseer.movementos.domain.fake.FakeSessionRepository
-import com.theunderseer.movementos.domain.model.Exercise
-import com.theunderseer.movementos.domain.model.Session
 import com.theunderseer.movementos.domain.model.values.DifficultyLevel
 import com.theunderseer.movementos.domain.model.values.Duration
-import com.theunderseer.movementos.domain.model.values.MovementType
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class RecordSessionUseCaseTest {
-    private val fixedInstant = Instant.fromEpochMilliseconds(1_700_000_000_000)
-    private val fixedClock =
-        object : Clock {
-            override fun now(): Instant = fixedInstant
-        }
-
+    private val clock = FixedClock.default()
     private val repository = FakeSessionRepository()
-    private val useCase = RecordSessionUseCase(repository, fixedClock)
-
-    private val testSession =
-        Session(
-            id = "session-1",
-            programId = "program-1",
-            orderIndex = 0,
-            exercises =
-                listOf(
-                    Exercise(
-                        id = "ex-1",
-                        name = "Cat-cow",
-                        duration = Duration.ofMinutes(2),
-                        type = MovementType.MOBILITY,
-                    ),
-                ),
-            estimatedDuration = Duration.ofMinutes(2),
-        )
+    private val useCase = RecordSessionUseCase(repository, clock)
 
     @Test
     fun `records completed session with given difficulty`() =
         runTest {
+            val session = TestSessions.aSession()
+
             val entry =
                 useCase(
-                    session = testSession,
+                    session = session,
                     actualDuration = Duration.ofMinutes(3),
                     difficulty = DifficultyLevel.JUST_RIGHT,
                 )
 
-            assertEquals(testSession.id, entry.sessionId)
+            assertEquals(session.id, entry.sessionId)
             assertEquals(DifficultyLevel.JUST_RIGHT, entry.perceivedDifficulty)
             assertEquals(Duration.ofMinutes(3), entry.actualDuration)
-            assertEquals(fixedInstant, entry.completedAt)
+            assertEquals(FixedClock.DEFAULT_INSTANT, entry.completedAt)
         }
 
     @Test
     fun `generates deterministic id from session and timestamp`() =
         runTest {
-            val entry = useCase(testSession, Duration.ofMinutes(2), DifficultyLevel.JUST_RIGHT)
+            val session = TestSessions.aSession(id = "session-42")
 
-            assertEquals("session-1-${fixedInstant.toEpochMilliseconds()}", entry.id)
+            val entry = useCase(session, Duration.ofMinutes(2), DifficultyLevel.JUST_RIGHT)
+
+            assertEquals("session-42-${FixedClock.DEFAULT_INSTANT.toEpochMilliseconds()}", entry.id)
         }
 
     @Test
@@ -71,7 +50,7 @@ class RecordSessionUseCaseTest {
         runTest {
             val entry =
                 useCase(
-                    session = testSession,
+                    session = TestSessions.aSession(),
                     actualDuration = Duration.ofMinutes(2),
                     difficulty = DifficultyLevel.JUST_RIGHT,
                     notes = "   ",
@@ -85,7 +64,7 @@ class RecordSessionUseCaseTest {
         runTest {
             val entry =
                 useCase(
-                    session = testSession,
+                    session = TestSessions.aSession(),
                     actualDuration = Duration.ofMinutes(2),
                     difficulty = DifficultyLevel.JUST_RIGHT,
                     notes = "Felt tight in left hip",

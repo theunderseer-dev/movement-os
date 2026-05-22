@@ -15,6 +15,7 @@ composeBom = "2024.10.01"
 junit = "4.13.2"
 mockk = "1.13.13"
 turbine = "1.2.0"
+kover = "0.8.3"
 kotlinx-coroutines-test = "1.9.0"
 kotlin = "2.2.20"
 material3 = "1.10.0-alpha05"
@@ -40,6 +41,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-common = { module = "io.mockk:mockk-common", version.ref = "mockk" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
@@ -101,6 +103,7 @@ ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-seri
 movementos-android-library = { id = "movementos.android.library", version = "unspecified" }
 movementos-android-feature = { id = "movementos.android.feature", version = "unspecified" }
 movementos-android-application = { id = "movementos.android.application", version = "unspecified" }
+movementos-kmm-library = { id = "movementos.kmm.library", version = "unspecified" }
 movementos-quality = { id = "movementos.quality", version = "unspecified" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -114,3 +117,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

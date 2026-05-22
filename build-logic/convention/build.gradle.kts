@@ -34,5 +34,9 @@ gradlePlugin {
             id = "movementos.quality"
             implementationClass = "QualityConventionPlugin"
         }
+        register("kmmLibrary") {
+            id = "movementos.kmm.library"
+            implementationClass = "KmmLibraryConventionPlugin"
+        }
     }
 }
