@@ -9,8 +9,26 @@ slow, flaky implementations.
 - **kotlin.test** as assertion library (multiplatform, no JUnit Android dependency in shared)
 - **kotlinx-coroutines-test** with `runTest` for suspending tests
 - **Turbine** for Flow emission assertions
-- **MockK multiplatform** for occasional mocks (fakes preferred)
 - **Kover** for coverage with 80% threshold on `domain.usecase` package
+- **No MockK** — fakes preferred over mocks (see "Fakes over mocks" section)
+
+## On rejecting MockK
+
+MockK multiplatform was considered and explicitly rejected at this stage:
+
+- **Repositories** use fakes (`FakeProgramRepository`) that mimic real behavior with
+  `MutableStateFlow` + in-memory storage. Tests verify outcomes, not call sequences.
+- **External collaborators** (LLM client, analytics) use single-method stubs via
+  anonymous object or `fun interface` lambda. No mocking framework needed.
+- **Refactor resilience** — mocks couple tests to call sequences via `verify { }`
+  assertions; renaming a method or changing call order breaks tests even when
+  behavior is correct. Fakes only break on actual behavior changes.
+- **KMM compatibility** — MockK multiplatform support is incomplete and adds
+  configuration overhead for native targets (iOS) without proportional value.
+
+If a future test genuinely needs strict call-order verification (e.g. analytics events
+emitted in specific sequence), MockK can be added on demand to that specific module's
+`testImplementation`. Until then, the project stays mock-free.
 
 ## Test taxonomy
 
