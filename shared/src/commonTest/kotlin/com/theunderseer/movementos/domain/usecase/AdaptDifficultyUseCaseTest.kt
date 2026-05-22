@@ -121,4 +121,56 @@ class AdaptDifficultyUseCaseTest {
             val result = useCase(goalAtMinimum)
             assertEquals(Duration.ofMinutes(5), result.timePerSession)
         }
+
+    @Test
+    fun `uses cached history when state is Loading`() =
+        runTest {
+            val cachedEntries =
+                listOf(
+                    TestProgress.aProgressEntry(id = "e-1", perceivedDifficulty = DifficultyLevel.TOO_EASY),
+                    TestProgress.aProgressEntry(id = "e-2", perceivedDifficulty = DifficultyLevel.TOO_EASY),
+                    TestProgress.aProgressEntry(id = "e-3", perceivedDifficulty = DifficultyLevel.TOO_EASY),
+                )
+            repository.setLoading(cached = cachedEntries)
+
+            val result = useCase(baseGoal)
+
+            assertEquals(Duration.ofMinutes(25), result.timePerSession)
+        }
+
+    @Test
+    fun `returns goal unchanged when state is Loading with no cached data`() =
+        runTest {
+            repository.setLoading(cached = null)
+
+            val result = useCase(baseGoal)
+
+            assertEquals(baseGoal, result)
+        }
+
+    @Test
+    fun `uses cached history when state is Error`() =
+        runTest {
+            val cachedEntries =
+                listOf(
+                    TestProgress.aProgressEntry(id = "e-1", perceivedDifficulty = DifficultyLevel.TOO_HARD),
+                    TestProgress.aProgressEntry(id = "e-2", perceivedDifficulty = DifficultyLevel.TOO_HARD),
+                    TestProgress.aProgressEntry(id = "e-3", perceivedDifficulty = DifficultyLevel.TOO_HARD),
+                )
+            repository.setError(cached = cachedEntries)
+
+            val result = useCase(baseGoal)
+
+            assertEquals(Duration.ofMinutes(15), result.timePerSession)
+        }
+
+    @Test
+    fun `returns goal unchanged when state is Error with no cached data`() =
+        runTest {
+            repository.setError(cached = null)
+
+            val result = useCase(baseGoal)
+
+            assertEquals(baseGoal, result)
+        }
 }
