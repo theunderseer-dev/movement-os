@@ -5,6 +5,11 @@ import com.theunderseer.movementos.data.ai.LlmRequest
 import com.theunderseer.movementos.data.ai.LlmResponse
 import com.theunderseer.movementos.data.ai.TokenUsage
 import com.theunderseer.movementos.data.ai.adapter.LlmAdapter
+import com.theunderseer.movementos.data.ai.adapter.gemini.dto.GeminiContent
+import com.theunderseer.movementos.data.ai.adapter.gemini.dto.GeminiGenerationConfig
+import com.theunderseer.movementos.data.ai.adapter.gemini.dto.GeminiPart
+import com.theunderseer.movementos.data.ai.adapter.gemini.dto.GeminiRequest
+import com.theunderseer.movementos.data.ai.adapter.gemini.dto.GeminiResponse
 import com.theunderseer.movementos.data.network.ApiResult
 import com.theunderseer.movementos.data.network.safeApiCall
 import io.ktor.client.HttpClient
