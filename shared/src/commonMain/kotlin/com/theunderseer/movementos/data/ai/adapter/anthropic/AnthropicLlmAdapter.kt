@@ -5,9 +5,9 @@ import com.theunderseer.movementos.data.ai.LlmRequest
 import com.theunderseer.movementos.data.ai.LlmResponse
 import com.theunderseer.movementos.data.ai.TokenUsage
 import com.theunderseer.movementos.data.ai.adapter.LlmAdapter
-import com.theunderseer.movementos.data.ai.adapter.anthropic.model.AnthropicMessage
-import com.theunderseer.movementos.data.ai.adapter.anthropic.model.AnthropicRequest
-import com.theunderseer.movementos.data.ai.adapter.anthropic.model.AnthropicResponse
+import com.theunderseer.movementos.data.ai.adapter.anthropic.dto.AnthropicMessage
+import com.theunderseer.movementos.data.ai.adapter.anthropic.dto.AnthropicRequest
+import com.theunderseer.movementos.data.ai.adapter.anthropic.dto.AnthropicResponse
 import com.theunderseer.movementos.data.network.ApiResult
 import com.theunderseer.movementos.data.network.safeApiCall
 import io.ktor.client.HttpClient

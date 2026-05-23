@@ -1,4 +1,4 @@
-package com.theunderseer.movementos.data.ai.adapter.anthropic.model
+package com.theunderseer.movementos.data.ai.adapter.anthropic.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
