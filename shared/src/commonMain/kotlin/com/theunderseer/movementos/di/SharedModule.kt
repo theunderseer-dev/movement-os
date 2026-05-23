@@ -1,6 +1,17 @@
 package com.theunderseer.movementos.di
 
 import com.theunderseer.movementos.data.DatabaseFactory
+import com.theunderseer.movementos.data.ai.LlmApiKeys
+import com.theunderseer.movementos.data.ai.LlmClient
+import com.theunderseer.movementos.data.ai.LlmProvider
+import com.theunderseer.movementos.data.ai.adapter.LlmAdapter
+import com.theunderseer.movementos.data.ai.adapter.anthropic.AnthropicLlmAdapter
+import com.theunderseer.movementos.data.ai.adapter.gemini.GeminiLlmAdapter
+import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiLlmAdapter
+import com.theunderseer.movementos.data.ai.orchestrator.DefaultLlmRequestStrategy
+import com.theunderseer.movementos.data.ai.orchestrator.LlmOrchestrator
+import com.theunderseer.movementos.data.ai.orchestrator.LlmRequestStrategy
+import com.theunderseer.movementos.data.ai.orchestrator.ProviderHealthTracker
 import com.theunderseer.movementos.data.local.GoalLocalDataSource
 import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
@@ -103,6 +114,32 @@ val sharedModule =
                 local = get(),
                 remote = get(),
                 orchestration = get(),
+            )
+        }
+
+        single<ProviderHealthTracker> { ProviderHealthTracker() }
+        single<LlmRequestStrategy> { DefaultLlmRequestStrategy() }
+
+        single<LlmAdapter>(named("gemini")) {
+            GeminiLlmAdapter(httpClient = get(), apiKey = get<LlmApiKeys>().geminiApiKey)
+        }
+        single<LlmAdapter>(named("anthropic")) {
+            AnthropicLlmAdapter(httpClient = get(), apiKey = get<LlmApiKeys>().anthropicApiKey)
+        }
+        single<LlmAdapter>(named("openai")) {
+            OpenAiLlmAdapter(httpClient = get(), apiKey = get<LlmApiKeys>().openAiApiKey)
+        }
+
+        single<LlmClient> {
+            LlmOrchestrator(
+                adapters =
+                    mapOf(
+                        LlmProvider.GEMINI to get(named("gemini")),
+                        LlmProvider.ANTHROPIC to get(named("anthropic")),
+                        LlmProvider.OPENAI to get(named("openai")),
+                    ),
+                strategy = get(),
+                healthTracker = get(),
             )
         }
     }
