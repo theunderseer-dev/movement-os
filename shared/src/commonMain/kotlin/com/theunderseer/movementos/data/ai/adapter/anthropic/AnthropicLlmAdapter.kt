@@ -37,12 +37,13 @@ internal class AnthropicLlmAdapter(
                             AnthropicRequest(
                                 model = model,
                                 system = request.systemPrompt,
-                                messages = listOf(
-                                    AnthropicMessage(
-                                        role = "user",
-                                        content = request.userPrompt
-                                    )
-                                ),
+                                messages =
+                                    listOf(
+                                        AnthropicMessage(
+                                            role = "user",
+                                            content = request.userPrompt,
+                                        ),
+                                    ),
                                 maxTokens = request.maxTokens,
                                 temperature = request.temperature,
                             ),
@@ -51,8 +52,7 @@ internal class AnthropicLlmAdapter(
 
             LlmResponse(
                 content =
-                    response.content.firstOrNull()?.text
-                        ?: throw IllegalStateException("Anthropic returned no content"),
+                    response.content.firstOrNull()?.text ?: error("Anthropic returned no content"),
                 provider = LlmProvider.ANTHROPIC,
                 model = response.model,
                 usage =

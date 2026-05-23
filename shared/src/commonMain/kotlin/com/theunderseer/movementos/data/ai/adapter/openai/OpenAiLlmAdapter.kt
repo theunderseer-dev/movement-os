@@ -61,7 +61,7 @@ internal class OpenAiLlmAdapter(
                         .firstOrNull()
                         ?.message
                         ?.content
-                        ?: throw IllegalStateException("OpenAI returned no choices"),
+                        ?: error("OpenAI returned no choices"),
                 provider = LlmProvider.OPENAI,
                 model = response.model,
                 usage =

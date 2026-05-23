@@ -32,6 +32,5 @@ private fun platformModule(application: Application) =
                 anthropicApiKey = BuildConfig.ANTHROPIC_API_KEY,
                 openAiApiKey = BuildConfig.OPENAI_API_KEY,
             )
-
         }
     }

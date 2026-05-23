@@ -14,5 +14,6 @@ import com.theunderseer.movementos.data.network.ApiResult
  */
 interface LlmAdapter {
     val provider: LlmProvider
+
     suspend fun complete(request: LlmRequest): ApiResult<LlmResponse>
 }

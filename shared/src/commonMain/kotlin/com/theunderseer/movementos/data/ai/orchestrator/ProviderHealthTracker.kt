@@ -2,10 +2,10 @@ package com.theunderseer.movementos.data.ai.orchestrator
 
 import com.theunderseer.movementos.data.ai.LlmProvider
 import com.theunderseer.movementos.data.network.ApiResult
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
-import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
@@ -33,7 +33,10 @@ class ProviderHealthTracker(
         unhealthySince.remove(provider)
     }
 
-    fun recordFailure(provider: LlmProvider, error: ApiResult.Error) {
+    fun recordFailure(
+        provider: LlmProvider,
+        error: ApiResult.Error,
+    ) {
         if (error is ApiResult.Error.Unauthorized) return
         unhealthySince[provider] = clock.now()
     }

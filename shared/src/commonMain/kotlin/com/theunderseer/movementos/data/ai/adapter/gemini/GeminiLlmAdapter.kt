@@ -36,11 +36,17 @@ internal class GeminiLlmAdapter(
 
     override suspend fun complete(request: LlmRequest): ApiResult<LlmResponse> =
         safeApiCall {
+            val url =
+                buildString {
+                    append("https://generativelanguage.googleapis.com/v1beta/models/")
+                    append(model)
+                    append(":generateContent?key=")
+                    append(apiKey)
+                }
+
             val response =
                 httpClient
-                    .post(
-                        "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
-                    ) {
+                    .post(url) {
                         contentType(ContentType.Application.Json)
                         setBody(request.toGeminiRequest())
                     }.body<GeminiResponse>()
@@ -61,7 +67,12 @@ internal class GeminiLlmAdapter(
                 GeminiGenerationConfig(
                     temperature = temperature,
                     maxOutputTokens = maxTokens,
-                    responseMimeType = if (responseFormat == LlmRequest.ResponseFormat.JSON) "application/json" else null,
+                    responseMimeType =
+                        if (responseFormat == LlmRequest.ResponseFormat.JSON) {
+                            "application/json"
+                        } else {
+                            null
+                        },
                 ),
             systemInstruction =
                 systemPrompt?.let {
@@ -77,7 +88,7 @@ internal class GeminiLlmAdapter(
                 ?.parts
                 ?.firstOrNull()
                 ?.text
-                ?: throw IllegalStateException("Gemini returned no candidates")
+                ?: error("Gemini returned no candidates")
         return LlmResponse(
             content = content,
             provider = LlmProvider.GEMINI,
