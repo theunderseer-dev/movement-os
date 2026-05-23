@@ -1,7 +1,5 @@
 package com.theunderseer.movementos.data.ai.adapter.openai.dto
 
-import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiChoice
-import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiUsage
 import kotlinx.serialization.Serializable
 
 @Serializable

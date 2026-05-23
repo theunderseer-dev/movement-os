@@ -1,7 +1,5 @@
 package com.theunderseer.movementos.data.ai.adapter.openai.dto
 
-import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiMessage
-import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiResponseFormat
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
