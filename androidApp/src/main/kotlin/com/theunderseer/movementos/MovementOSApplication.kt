@@ -2,6 +2,7 @@ package com.theunderseer.movementos
 
 import android.app.Application
 import com.theunderseer.movementos.data.DatabaseFactory
+import com.theunderseer.movementos.data.ai.LlmApiKeys
 import com.theunderseer.movementos.di.sharedModule
 import dagger.hilt.android.HiltAndroidApp
 import org.koin.android.ext.koin.androidContext
@@ -25,4 +26,12 @@ class MovementOSApplication : Application() {
 private fun platformModule(application: Application) =
     module {
         single { DatabaseFactory(application.applicationContext) }
+        single {
+            LlmApiKeys(
+                geminiApiKey = BuildConfig.GEMINI_API_KEY,
+                anthropicApiKey = BuildConfig.ANTHROPIC_API_KEY,
+                openAiApiKey = BuildConfig.OPENAI_API_KEY,
+            )
+
+        }
     }
