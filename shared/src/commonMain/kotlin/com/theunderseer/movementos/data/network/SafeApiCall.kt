@@ -7,7 +7,7 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.JsonConvertException
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 
 private val logger = Logger.withTag("SafeApiCall")
 

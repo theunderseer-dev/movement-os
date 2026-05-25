@@ -14,21 +14,14 @@ import com.theunderseer.movementos.domain.repository.ProgramRepository
 class GenerateProgramUseCase(
     private val programRepository: ProgramRepository,
     private val programGenerator: ProgramGenerator,
+    private val fallbackGenerator: ProgramGenerator,
 ) {
     suspend operator fun invoke(goal: UserGoal): Result<Program> =
         runCatching {
-            val program = programGenerator.generate(goal)
+            val program =
+                runCatching { programGenerator.generate(goal) }
+                    .getOrElse { fallbackGenerator.generate(goal) }
             programRepository.save(program)
             program
         }
-}
-
-/**
- * Strategy interface for producing a program from a goal.
- *
- * Implemented separately for AI-driven generation (LLM) and deterministic
- * fallback (rule-based). Use case stays the same; strategy swaps.
- */
-fun interface ProgramGenerator {
-    suspend fun generate(goal: UserGoal): Program
 }
