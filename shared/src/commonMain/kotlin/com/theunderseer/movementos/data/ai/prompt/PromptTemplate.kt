@@ -12,10 +12,11 @@ data class PromptTemplate(
     val systemPrompt: String?,
     val userPromptTemplate: String,
 ) {
-    private val placeholders: Set<String> = PLACEHOLDER_REGEX
-        .findAll(userPromptTemplate)
-        .map { it.groupValues[1] }
-        .toSet()
+    private val placeholders: Set<String> =
+        PLACEHOLDER_REGEX
+            .findAll(userPromptTemplate)
+            .map { it.groupValues[1] }
+            .toSet()
 
     /**
      * Renders the template with the given context values.
@@ -26,9 +27,10 @@ data class PromptTemplate(
         val missing = placeholders - context.values.keys
         require(missing.isEmpty()) { "Missing placeholders: $missing" }
 
-        val rendered = placeholders.fold(userPromptTemplate) { acc, name ->
-            acc.replace("{{$name}}", context.values.getValue(name))
-        }
+        val rendered =
+            placeholders.fold(userPromptTemplate) { acc, name ->
+                acc.replace("{{$name}}", context.values.getValue(name))
+            }
 
         return RenderedPrompt(systemPrompt = systemPrompt, userPrompt = rendered)
     }

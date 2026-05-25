@@ -6,9 +6,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ResponseParserTest {
-
     @Serializable
-    data class TestPayload(val name: String, val value: Int)
+    data class TestPayload(
+        val name: String,
+        val value: Int,
+    )
 
     private val parser = ResponseParser()
 
@@ -23,12 +25,13 @@ class ResponseParserTest {
 
     @Test
     fun `extracts JSON from markdown code fence`() {
-        val content = """
+        val content =
+            """
             Here is your data:
             ```json
             {"name": "test", "value": 42}
             ```
-        """.trimIndent()
+            """.trimIndent()
 
         val result = parser.parse(content, TestPayload.serializer())
         assertTrue(result.isSuccess)
@@ -37,9 +40,10 @@ class ResponseParserTest {
 
     @Test
     fun `extracts JSON from unfenced code block`() {
-        val content = """
-              {"name": "test", "value": 42}
-              """.trimIndent()
+        val content =
+            """
+            {"name": "test", "value": 42}
+            """.trimIndent()
 
         val result = parser.parse(content, TestPayload.serializer())
         assertTrue(result.isSuccess)

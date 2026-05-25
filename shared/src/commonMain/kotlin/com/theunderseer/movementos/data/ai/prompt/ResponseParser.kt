@@ -41,6 +41,7 @@ internal class ResponseParser(
      * - ```\n{...}\n```
      * - "Here is the JSON: {...}" (extracts {...} via brace matching)
      */
+    @Suppress("ReturnCount")
     private fun extractJson(content: String): String {
         val trimmed = content.trim()
 

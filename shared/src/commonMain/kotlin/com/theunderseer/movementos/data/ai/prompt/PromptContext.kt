@@ -11,6 +11,7 @@ package com.theunderseer.movementos.data.ai.prompt
  *     .build()
  * ```
  */
+@ConsistentCopyVisibility
 data class PromptContext internal constructor(
     val values: Map<String, String>,
 ) {
