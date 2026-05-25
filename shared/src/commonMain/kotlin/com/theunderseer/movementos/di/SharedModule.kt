@@ -12,6 +12,11 @@ import com.theunderseer.movementos.data.ai.orchestrator.DefaultLlmRequestStrateg
 import com.theunderseer.movementos.data.ai.orchestrator.LlmOrchestrator
 import com.theunderseer.movementos.data.ai.orchestrator.LlmRequestStrategy
 import com.theunderseer.movementos.data.ai.orchestrator.ProviderHealthTracker
+import com.theunderseer.movementos.data.ai.prompt.PromptBuilder
+import com.theunderseer.movementos.data.ai.prompt.ResponseParser
+import com.theunderseer.movementos.data.ai.prompt.program.DeterministicProgramGenerator
+import com.theunderseer.movementos.data.ai.prompt.program.ProgramGenerator
+import com.theunderseer.movementos.data.ai.prompt.retry.ResponseRepairStrategy
 import com.theunderseer.movementos.data.local.GoalLocalDataSource
 import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
@@ -42,11 +47,13 @@ import com.theunderseer.movementos.data.repository.DefaultSessionRepository
 import com.theunderseer.movementos.domain.repository.GoalRepository
 import com.theunderseer.movementos.domain.repository.ProgramRepository
 import com.theunderseer.movementos.domain.repository.SessionRepository
+import com.theunderseer.movementos.domain.usecase.GenerateProgramUseCase
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
+import com.theunderseer.movementos.domain.usecase.ProgramGenerator as IProgramGenerator
 
 @OptIn(ExperimentalTime::class)
 val sharedModule =
@@ -140,6 +147,32 @@ val sharedModule =
                     ),
                 strategy = get(),
                 healthTracker = get(),
+            )
+        }
+
+        single { PromptBuilder() }
+        single { ResponseParser() }
+        single { ResponseRepairStrategy(llmClient = get()) }
+
+        single<IProgramGenerator>(named("llm")) {
+            ProgramGenerator(
+                llmClient = get(),
+                promptBuilder = get(),
+                responseParser = get(),
+            )
+        }
+
+        single<IProgramGenerator>(named("fallback")) {
+            DeterministicProgramGenerator()
+        }
+
+        single<ProgramGenerator> { get(named("llm")) }
+
+        single {
+            GenerateProgramUseCase(
+                programRepository = get(),
+                programGenerator = get(),
+                fallbackGenerator = get(named("fallback")),
             )
         }
     }

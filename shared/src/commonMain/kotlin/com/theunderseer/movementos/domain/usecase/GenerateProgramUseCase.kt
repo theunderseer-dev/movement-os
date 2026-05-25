@@ -14,10 +14,13 @@ import com.theunderseer.movementos.domain.repository.ProgramRepository
 class GenerateProgramUseCase(
     private val programRepository: ProgramRepository,
     private val programGenerator: ProgramGenerator,
+    private val fallbackGenerator: ProgramGenerator,
 ) {
     suspend operator fun invoke(goal: UserGoal): Result<Program> =
         runCatching {
-            val program = programGenerator.generate(goal)
+            val program =
+                runCatching { programGenerator.generate(goal) }
+                    .getOrElse { fallbackGenerator.generate(goal) }
             programRepository.save(program)
             program
         }
