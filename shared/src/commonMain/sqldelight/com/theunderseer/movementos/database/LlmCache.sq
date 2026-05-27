@@ -1,0 +1,32 @@
+CREATE TABLE LlmCache (
+    cache_key TEXT NOT NULL PRIMARY KEY,
+    content TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    prompt_tokens INTEGER NOT NULL,
+    completion_tokens INTEGER NOT NULL,
+    total_tokens INTEGER NOT NULL,
+    cached_at_ms INTEGER NOT NULL,
+    expires_at_ms INTEGER NOT NULL
+);
+
+CREATE INDEX idx_llm_cache_expires ON LlmCache(expires_at_ms);
+
+selectByKey:
+SELECT * FROM LlmCache WHERE cache_key = ? AND expires_at_ms > :now;
+
+upsert:
+INSERT OR REPLACE INTO LlmCache(
+    cache_key, content, provider, model,
+    prompt_tokens, completion_tokens, total_tokens,
+    cached_at_ms, expires_at_ms
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteExpired:
+DELETE FROM LlmCache WHERE expires_at_ms <= :now;
+
+deleteAll:
+DELETE FROM LlmCache;
+
+count:
+SELECT COUNT(*) FROM LlmCache;
