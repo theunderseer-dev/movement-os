@@ -75,5 +75,11 @@ internal class TelemetryLlmClient(
         return result
     }
 
-    private fun generateRequestId(): String = "req-${clock.now().toEpochMilliseconds()}-${(0..9999).random()}"
+    private fun generateRequestId(): String =
+        "req-${clock.now().toEpochMilliseconds()}-" +
+            "${(0..MAX_REQUEST_ID_SUFFIX).random()}"
+
+    private companion object {
+        const val MAX_REQUEST_ID_SUFFIX = 9999
+    }
 }
