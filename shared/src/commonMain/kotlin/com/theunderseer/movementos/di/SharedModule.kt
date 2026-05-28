@@ -8,6 +8,14 @@ import com.theunderseer.movementos.data.ai.adapter.LlmAdapter
 import com.theunderseer.movementos.data.ai.adapter.anthropic.AnthropicLlmAdapter
 import com.theunderseer.movementos.data.ai.adapter.gemini.GeminiLlmAdapter
 import com.theunderseer.movementos.data.ai.adapter.openai.OpenAiLlmAdapter
+import com.theunderseer.movementos.data.ai.budget.BudgetEnforcedLlmClient
+import com.theunderseer.movementos.data.ai.budget.TokenBudget
+import com.theunderseer.movementos.data.ai.budget.TokenBudgetTracker
+import com.theunderseer.movementos.data.ai.cache.CachedLlmClient
+import com.theunderseer.movementos.data.ai.cache.CompositeLlmResponseCache
+import com.theunderseer.movementos.data.ai.cache.InMemoryLlmResponseCache
+import com.theunderseer.movementos.data.ai.cache.LlmResponseCache
+import com.theunderseer.movementos.data.ai.cache.SqlDelightLlmResponseCache
 import com.theunderseer.movementos.data.ai.orchestrator.DefaultLlmRequestStrategy
 import com.theunderseer.movementos.data.ai.orchestrator.LlmOrchestrator
 import com.theunderseer.movementos.data.ai.orchestrator.LlmRequestStrategy
@@ -17,6 +25,12 @@ import com.theunderseer.movementos.data.ai.prompt.ResponseParser
 import com.theunderseer.movementos.data.ai.prompt.program.DeterministicProgramGenerator
 import com.theunderseer.movementos.data.ai.prompt.program.ProgramGenerator
 import com.theunderseer.movementos.data.ai.prompt.retry.ResponseRepairStrategy
+import com.theunderseer.movementos.data.ai.ratelimit.RateLimitConfig
+import com.theunderseer.movementos.data.ai.ratelimit.RateLimitedLlmClient
+import com.theunderseer.movementos.data.ai.ratelimit.TokenBucketRateLimiter
+import com.theunderseer.movementos.data.ai.telemetry.KermitLlmTelemetry
+import com.theunderseer.movementos.data.ai.telemetry.LlmTelemetry
+import com.theunderseer.movementos.data.ai.telemetry.TelemetryLlmClient
 import com.theunderseer.movementos.data.local.GoalLocalDataSource
 import com.theunderseer.movementos.data.local.ProgramLocalDataSource
 import com.theunderseer.movementos.data.local.ProgressLocalDataSource
@@ -52,6 +66,7 @@ import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 import com.theunderseer.movementos.domain.usecase.ProgramGenerator as IProgramGenerator
 
@@ -174,5 +189,61 @@ val sharedModule =
                 programGenerator = get(),
                 fallbackGenerator = get(named("fallback")),
             )
+        }
+
+        single<LlmTelemetry> { KermitLlmTelemetry() }
+
+        single<LlmResponseCache>(named("memory")) { InMemoryLlmResponseCache() }
+        single<LlmResponseCache>(named("disk")) {
+            SqlDelightLlmResponseCache(database = get(), dispatcher = get(named("io")))
+        }
+        single<LlmResponseCache>(named("composite")) {
+            CompositeLlmResponseCache(l1 = get(named("memory")), l2 = get(named("disk")))
+        }
+
+        single {
+            TokenBudgetTracker(
+                budgets =
+                    mapOf(
+                        LlmProvider.GEMINI to TokenBudget(maxTokens = 1_500_000),
+                        LlmProvider.ANTHROPIC to TokenBudget(maxTokens = 100_000),
+                        LlmProvider.OPENAI to TokenBudget(maxTokens = 100_000),
+                    ),
+            )
+        }
+
+        single(named("rateLimiter")) {
+            TokenBucketRateLimiter(
+                config = RateLimitConfig(maxRequests = 15, perDuration = 1.minutes),
+            )
+        }
+
+        single<LlmClient> {
+            val orchestrator =
+                LlmOrchestrator(
+                    adapters =
+                        mapOf(
+                            LlmProvider.GEMINI to get(named("gemini")),
+                            LlmProvider.ANTHROPIC to get(named("anthropic")),
+                            LlmProvider.OPENAI to get(named("openai")),
+                        ),
+                    strategy = get(),
+                    healthTracker = get(),
+                )
+
+            val rateLimited = RateLimitedLlmClient(orchestrator, get(named("rateLimiter")))
+            val budgetEnforced =
+                BudgetEnforcedLlmClient(
+                    delegate = rateLimited,
+                    tracker = get(),
+                    defaultProvider = LlmProvider.GEMINI,
+                )
+            val cached =
+                CachedLlmClient(
+                    delegate = budgetEnforced,
+                    cache = get(named("composite")),
+                    telemetry = get(),
+                )
+            TelemetryLlmClient(delegate = cached, telemetry = get())
         }
     }
