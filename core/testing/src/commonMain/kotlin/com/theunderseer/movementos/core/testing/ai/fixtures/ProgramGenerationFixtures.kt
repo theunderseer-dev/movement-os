@@ -4,7 +4,7 @@ package com.theunderseer.movementos.core.testing.ai.fixtures
  * JSON payload fixtures for testing program generation parsing.
  *
  * Mirrors production schema in ProgramGenerationPrompt.SYSTEM_PROMPT.
- * Use [validProgramJson] for happy paths, [malformedJson] / [missingFieldJson] / etc.
+ * Use [validProgramJson] for happy paths, [MALFORMED_JSON] / [missingFieldJson] / etc.
  * for error scenarios.
  */
 object ProgramGenerationFixtures {
@@ -47,7 +47,7 @@ object ProgramGenerationFixtures {
 
     val validProgramJsonWithProse = "I've generated the following program: $validProgramJson"
 
-    val malformedJson = """{"name": "test", "description":}"""
+    const val MALFORMED_JSON = """{"name": "test", "description":}"""
 
     val missingFieldJson =
         """

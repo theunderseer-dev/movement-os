@@ -63,7 +63,7 @@ class ProgramGenerationPipelineTest {
     @Test
     fun `throws on malformed JSON`() =
         runTest {
-            val llmClient = FakeLlmClient().respondWithSuccess(ProgramGenerationFixtures.malformedJson)
+            val llmClient = FakeLlmClient().respondWithSuccess(ProgramGenerationFixtures.MALFORMED_JSON)
             val generator = ProgramGenerator(llmClient = llmClient, clock = clock)
 
             assertFailsWith<IllegalStateException> { generator.generate(goal) }

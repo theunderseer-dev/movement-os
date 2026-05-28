@@ -30,7 +30,10 @@ class FakeLlmAdapter(
             responses.add(response)
         }
 
-    fun respondWithSuccess(content: String): FakeLlmAdapter = respondWith(FakeLlmClient.successResponse(content, provider))
+    fun respondWithSuccess(content: String): FakeLlmAdapter =
+        respondWith(
+            FakeLlmClient.successResponse(content, provider),
+        )
 
     fun respondWithError(error: ApiResult.Error): FakeLlmAdapter = respondWith(error)
 
