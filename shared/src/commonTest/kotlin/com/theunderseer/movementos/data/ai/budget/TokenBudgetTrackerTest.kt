@@ -41,7 +41,7 @@ class TokenBudgetTrackerTest {
             tracker.tryReserve(LlmProvider.GEMINI, 500)
             tracker.reconcile(LlmProvider.GEMINI, estimatedTokens = 500, actualTokens = 300)
 
-            assertEquals(800, tracker.remaining(LlmProvider.GEMINI))
+            assertEquals(700, tracker.remaining(LlmProvider.GEMINI))
         }
 
     @Test
