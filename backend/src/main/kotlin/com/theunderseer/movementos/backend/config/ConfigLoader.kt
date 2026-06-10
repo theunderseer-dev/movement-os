@@ -21,34 +21,39 @@ object ConfigLoader {
 
         return AppConfig(
             environment = environment,
-            server = AppConfig.ServerConfig(
-                host = config.getString("server.host"),
-                port = envInt("PORT") ?: config.getInt("server.port"),
-            ),
-            database = AppConfig.DatabaseConfig(
-                url = envString("DATABASE_URL") ?: config.getString("database.url"),
-                user = envString("DATABASE_USER") ?: config.getString("database.user"),
-                password = envString("DATABASE_PASSWORD") ?: config.getString("database.password"),
-                maxPoolSize = config.getInt("database.maxPoolSize"),
-            ),
-            llm = AppConfig.LlmConfig(
-                geminiApiKey = envString("GEMINI_API_KEY").orEmpty(),
-                anthropicApiKey = envString("ANTHROPIC_API_KEY").orEmpty(),
-                openAiApiKey = envString("OPENAI_API_KEY").orEmpty(),
-            ),
+            server =
+                AppConfig.ServerConfig(
+                    host = config.getString("server.host"),
+                    port = envInt("PORT") ?: config.getInt("server.port"),
+                ),
+            database =
+                AppConfig.DatabaseConfig(
+                    url = envString("DATABASE_URL") ?: config.getString("database.url"),
+                    user = envString("DATABASE_USER") ?: config.getString("database.user"),
+                    password = envString("DATABASE_PASSWORD") ?: config.getString("database.password"),
+                    maxPoolSize = config.getInt("database.maxPoolSize"),
+                ),
+            llm =
+                AppConfig.LlmConfig(
+                    geminiApiKey = envString("GEMINI_API_KEY").orEmpty(),
+                    anthropicApiKey = envString("ANTHROPIC_API_KEY").orEmpty(),
+                    openAiApiKey = envString("OPENAI_API_KEY").orEmpty(),
+                ),
         )
     }
 
     private fun loadHocon(environment: Environment): Config {
         val base = ConfigFactory.parseResources("application.conf")
-        val overlayName = when (environment) {
-            Environment.LOCAL -> "application-local.conf"
-            Environment.PRODUCTION -> "application-prod.conf"
-        }
+        val overlayName =
+            when (environment) {
+                Environment.LOCAL -> "application-local.conf"
+                Environment.PRODUCTION -> "application-prod.conf"
+            }
         val overlay = ConfigFactory.parseResources(overlayName)
         return overlay.withFallback(base).resolve()
     }
 
     private fun envString(key: String): String? = System.getenv(key)?.takeIf { it.isNotBlank() }
+
     private fun envInt(key: String): Int? = System.getenv(key)?.toIntOrNull()
 }

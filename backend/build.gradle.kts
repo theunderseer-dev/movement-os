@@ -13,6 +13,7 @@ dependencies {
 
     implementation(libs.bundles.ktor.server)
     implementation(libs.ktor.server.config.yaml)
+    implementation(libs.bundles.ktor.server)
     implementation(libs.logback.classic)
     implementation(libs.typesafe.config)
     implementation(libs.koin.ktor)

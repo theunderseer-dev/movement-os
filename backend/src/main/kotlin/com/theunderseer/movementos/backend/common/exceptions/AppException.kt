@@ -14,7 +14,6 @@ sealed class AppException(
     override val message: String,
     val details: Map<String, String> = emptyMap(),
 ) : RuntimeException(message) {
-
     class ValidationException(
         message: String,
         details: Map<String, String> = emptyMap(),

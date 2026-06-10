@@ -9,9 +9,10 @@ enum class Environment {
     ;
 
     companion object {
-        fun from(value: String?): Environment = when (value?.lowercase()) {
-            "prod", "production" -> PRODUCTION
-            else -> LOCAL
-        }
+        fun from(value: String?): Environment =
+            when (value?.lowercase()) {
+                "prod", "production" -> PRODUCTION
+                else -> LOCAL
+            }
     }
 }
