@@ -18,46 +18,49 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class StatusPagesTest {
+    @Test
+    fun `maps AppException to structured ApiError`() =
+        testApplication {
+            application {
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    get("/boom") { throw AppException.NotFoundException("Program not found") }
+                }
+            }
+            val client =
+                createClient {
+                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                }
+
+            val response = client.get("/boom")
+
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            val error = response.body<ApiError>()
+            assertEquals(ErrorCode.NOT_FOUND, error.code)
+            assertEquals("Program not found", error.message)
+        }
 
     @Test
-    fun `maps AppException to structured ApiError`() = testApplication {
-        application {
-            configureSerialization()
-            configureStatusPages()
-            routing {
-                get("/boom") { throw AppException.NotFoundException("Program not found") }
+    fun `maps unhandled exception to INTERNAL_ERROR without leaking details`() =
+        testApplication {
+            application {
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    get("/crash") { throw IllegalStateException("internal DB connection string leaked") }
+                }
             }
+            val client =
+                createClient {
+                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                }
+
+            val response = client.get("/crash")
+
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            val error = response.body<ApiError>()
+            assertEquals(ErrorCode.INTERNAL_ERROR, error.code)
+            assertEquals("An unexpected error occurred", error.message) // generic, no leak
         }
-        val client = createClient {
-            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        }
-
-        val response = client.get("/boom")
-
-        assertEquals(HttpStatusCode.NotFound, response.status)
-        val error = response.body<ApiError>()
-        assertEquals(ErrorCode.NOT_FOUND, error.code)
-        assertEquals("Program not found", error.message)
-    }
-
-    @Test
-    fun `maps unhandled exception to INTERNAL_ERROR without leaking details`() = testApplication {
-        application {
-            configureSerialization()
-            configureStatusPages()
-            routing {
-                get("/crash") { throw IllegalStateException("internal DB connection string leaked") }
-            }
-        }
-        val client = createClient {
-            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        }
-
-        val response = client.get("/crash")
-
-        assertEquals(HttpStatusCode.InternalServerError, response.status)
-        val error = response.body<ApiError>()
-        assertEquals(ErrorCode.INTERNAL_ERROR, error.code)
-        assertEquals("An unexpected error occurred", error.message)  // generic, no leak
-    }
 }
