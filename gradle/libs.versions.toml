@@ -24,6 +24,10 @@ hilt = "2.57"
 hilt-navigation-compose = "1.2.0"
 koin = "4.0.0"
 ktor = "3.0.1"
+logback = "1.5.12"
+hikari = "6.2.1"                  # connection pool
+exposed = "0.56.0"                # SQL framework
+typesafe-config = "1.4.3"
 kotlinx-serialization = "1.7.3"
 kotlinx-coroutines = "1.9.0"
 sqldelight = "2.0.2"
@@ -80,6 +84,21 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktor-server-call-id = { module = "io.ktor:ktor-server-call-id", version.ref = "ktor" }
+ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
+ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
+ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-config" }
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
@@ -98,11 +117,23 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 compose-ui = ["compose-ui", "compose-uiToolingPreview", "compose-material3"]
 compose-test = ["compose-ui-test-junit4", "compose-ui-test-manifest"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-client-logging"]
+ktor-server = [
+    "ktor-server-core",
+    "ktor-server-netty",
+    "ktor-server-content-negotiation",
+    "ktor-serialization-json",
+    "ktor-server-status-pages",
+    "ktor-server-call-logging",
+    "ktor-server-call-id",
+    "ktor-server-default-headers",
+    "ktor-server-request-validation",
+]
 
 [plugins]
 movementos-android-library = { id = "movementos.android.library", version = "unspecified" }
 movementos-android-feature = { id = "movementos.android.feature", version = "unspecified" }
 movementos-android-application = { id = "movementos.android.application", version = "unspecified" }
+movementos-jvm-application = { id = "movementos.jvm.application", version = "unspecified" }
 movementos-kmm-library = { id = "movementos.kmm.library", version = "unspecified" }
 movementos-quality = { id = "movementos.quality", version = "unspecified" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -118,3 +149,4 @@ sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+

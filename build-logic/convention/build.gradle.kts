@@ -38,5 +38,9 @@ gradlePlugin {
             id = "movementos.kmm.library"
             implementationClass = "KmmLibraryConventionPlugin"
         }
+        register("jvmApplication") {
+            id = "movementos.jvm.application"
+            implementationClass = "JvmApplicationConventionPlugin"
+        }
     }
 }
