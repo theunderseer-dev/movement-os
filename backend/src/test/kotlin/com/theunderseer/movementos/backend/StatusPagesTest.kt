@@ -6,10 +6,10 @@ import com.theunderseer.movementos.backend.common.exceptions.ErrorCode
 import com.theunderseer.movementos.backend.plugins.configureSerialization
 import com.theunderseer.movementos.backend.plugins.configureStatusPages
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
@@ -30,7 +30,13 @@ class StatusPagesTest {
             }
             val client =
                 createClient {
-                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                    this@testApplication.install(ContentNegotiation) {
+                        json(
+                            Json {
+                                ignoreUnknownKeys = true
+                            },
+                        )
+                    }
                 }
 
             val response = client.get("/boom")
@@ -53,7 +59,7 @@ class StatusPagesTest {
             }
             val client =
                 createClient {
-                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                    this@testApplication.install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
                 }
 
             val response = client.get("/crash")
