@@ -2,7 +2,7 @@
 
 > AI-powered personalized movement coach. Generates custom training programs, adapts to user's feedback, works offline.
 
-**Status:** 🚧 In development — building in public
+**Status:** 🚧 Paused prototype. The project currently demonstrates its domain and data architecture, offline-first persistence, and synchronisation foundations. The UI and complete end-to-end product flows have not yet been implemented. Development is currently paused while I focus on Simplio.
 
 [![CI](https://github.com/theunderseer-dev/movement-os/actions/workflows/ci.yml/badge.svg)](https://github.com/theunderseer-dev/movement-os/actions/workflows/ci.yml)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
